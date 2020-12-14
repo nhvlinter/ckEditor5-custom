@@ -33,7 +33,7 @@ Also the adaptor must implement image convertion. <br>
 ## Usage
 
 ```javascript
-import modalFormify
+import ckEditor
 
 $(DOM.selector).customCkEditor(options); # returns customCkEditor api
 ```
