@@ -1,0 +1,1 @@
+http://27.74.244.108:8282/ckeditor-custom/frontend/index.html
