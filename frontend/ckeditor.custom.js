@@ -418,7 +418,7 @@ $.fn.customCkEditor= function( options ) {
             } );
         }
     }
-    ClassicEditor
+    InlineEditor
         .create( this[0], {
             extraPlugins: [ convertDiv, convertImage, convertSpan, convertAnchor ]
         })
