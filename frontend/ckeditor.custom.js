@@ -10,10 +10,8 @@ $.fn.customCkEditor= function( options ) {
             if(debug){console.log("convertDiv.init")}
             let thisEditor = this.editor;
             thisEditor.model.schema.register( 'div', {
-                allowWhere: '$block',
-                allowContentOf: '$root',
-                isObject: true,
-                allowIn : ['div']
+                allowWhere: '$text',
+                allowContentOf: '$block'
             } );
 
         };
@@ -88,9 +86,8 @@ $.fn.customCkEditor= function( options ) {
             if(debug){console.log("convertSpan.init")}
             let thisEditor = this.editor;
             thisEditor.model.schema.register( 'span', {
-                allowWhere: '$block',
-                allowContentOf: '$root',
-                allowIn : ['span']
+                allowWhere: '$text',
+                allowContentOf: '$block'
             } );
 
         };
@@ -165,9 +162,8 @@ $.fn.customCkEditor= function( options ) {
             if(debug){console.log("convertAnchor.init")}
             let thisEditor = this.editor;
             thisEditor.model.schema.register( 'a', {
-                allowWhere: '$block',
-                allowContentOf: '$root',
-                allowIn : ['a']
+                allowWhere: '$text',
+                allowContentOf: '$block'
             } );
         };
 
