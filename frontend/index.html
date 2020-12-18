@@ -14,16 +14,16 @@
     <body>
         <h1 style="margin-bottom: 50px">Inline editor</h1>
         <div id="editor">
-            <div style="color: red" preset="div tag">This is DIV</div>
-            <span style="color: blue" id="spanitem">This is SPAN</span>
-            <a id="anchorTag" href="http://google.com" style="color: red">This is ANCHOR</a>
-            <a href="https://ckeditor.com" target="_blank">CKEditor</a>
-            <img id="imageId" src="https://www.w3schools.com/tags/img_girl.jpg" alt="Girl in a jacket" width="500" height="600"></img>
         </div>
         <!-- <textarea id="txt" style="margin-top:20px;width: 100%;height: 200px"></textarea>
         <input type="button" value="Set value" onclick="window.editor.setData($('#txt').val().trim())" /> -->
         <script>
-            $("#editor").customCkEditor();
+            $(function() {
+                $.get( "../backend/get.php", function( data ) {
+                    $( "#editor" ).html( data );
+                    $("#editor").customCkEditor({ajaxApi:"../backend/post.php"});
+                });
+            });
         </script>
     </body>
 </html>

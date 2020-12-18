@@ -423,6 +423,7 @@ $.fn.customCkEditor= function( options ) {
             console.log( window.editor.getData());
             editor.model.document.on( 'change:data', () => {
                 console.log( window.editor.getData());
+                $.post( _settings.ajaxApi, {data:window.editor.getData()});
             } );
         })
         .catch( error => {
