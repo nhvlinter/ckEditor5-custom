@@ -1,0 +1,50 @@
+// colors
+$red: #da291c;
+$darkred: #ae1b11;
+$maroon: #450304;
+$black: #000;
+$white: #fff;
+$bgtable: #fafafa;
+$offwhite: #e5e5e5;
+$offblack: #525252;
+$lightgrey: #c1c6c8;
+$grey: #7c878e;
+$darkgrey: #2e2e2e;
+$disabled: #dde3e5;
+$shadow: rgba(0,0,0,.38);
+
+$bgmain: $white;
+$bgalt: $black;
+$textlight: $white;
+$textdark: $black;
+$link: $red;
+
+// spacing
+$spacing-xs: 0.5em;
+$spacing-sm: 1em;
+$spacing-md: 1.5em;
+$spacing-lg: 2em;
+$spacing-xl: 4em;
+$spacing-xxl: 7.5em;
+
+
+$nav-height-full: 94px;
+$nav-height-micro: 68px;
+
+// z-index
+$overbase: 2;
+$stickyheader: 100;
+$modal: 999;
+
+// font families
+$font-sm: 14px;
+$font-md: 16px;
+$avenir-book: 'AvenirLTStd-Book';
+$avenir-med: 'AvenirLTStd-Medium';
+$avenir-black: 'AvenirLTStd-Black';
+
+
+
+$sider-zIndex: 10;
+$sider-width: 240px;
+$header-height: 48px;
