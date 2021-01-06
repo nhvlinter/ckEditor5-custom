@@ -5,6 +5,7 @@ import { routes, notFound, homeRoute } from "../routes";
 import { RouterStore, HistoryAdapter,  } from "mobx-state-router";
 import {history} from "../services/history";
 import {BaseStore} from "./BaseStore";
+import { CKEditorStore } from './CKEditorStore';
 export class Store extends BaseStore {
     routerStore         : RouterStore;
     constructor() {
@@ -14,4 +15,5 @@ export class Store extends BaseStore {
         const historyAdapter = new HistoryAdapter(this.routerStore, history);
         historyAdapter.observeRouterStateChanges();
     }
+    sCKEditor = new CKEditorStore(this);
 }
