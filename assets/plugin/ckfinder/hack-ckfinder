@@ -1,0 +1,6 @@
+-> go to ckfinder/core/connector/php/vendor/cksource/ckfinder/src/CKSource/CKFinder/Command/Init.php
+
+and change
+
+        $data->s = "";
+        $data->c = "FD6FHE82DWH";
