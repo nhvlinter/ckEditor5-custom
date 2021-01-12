@@ -22,6 +22,8 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import TreeItem from '@material-ui/lab/TreeItem';
 import TreeView from '@material-ui/lab/TreeView';
 import TextField from '@material-ui/core/TextField';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 import { cpus } from 'os';
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
@@ -63,6 +65,15 @@ const useStyles = makeStyles((theme: Theme) =>
 			'&::before': {
 				height: '0px'
 			}
+		},
+		tabRoots: {
+			minHeight: "10px",
+			height: "40px",
+		},
+		tab: {
+			minWidth: "0px",
+			width: "80px",
+			textTransform: 'none',
 		}
 	}),
 );
@@ -71,6 +82,10 @@ const useStyles = makeStyles((theme: Theme) =>
 export const SiderMenu: FC<{ collapsed: boolean }> = observer(({ collapsed }) => {
 	const [drawerWidth, setDrawerWidth] = React.useState(240);
 	const classes = useStyles(drawerWidth);
+	const [valueTab, setValueTab] = React.useState(0);
+	const handleTabChange = (event, newValue) => {
+		setValueTab(newValue);
+	};
 	return (
 		<ThemeProvider >
 			<Drawer
@@ -79,7 +94,20 @@ export const SiderMenu: FC<{ collapsed: boolean }> = observer(({ collapsed }) =>
 				classes={{ paper: classNames(classes.paper, collapsed ? styles.drawerClose : styles.drawerOpen) }}
 				open={!collapsed}
 				transitionDuration={2000}>
-				<Divider />
+				<Tabs
+					classes={{ root: classes.tabRoots }}
+					value={valueTab}
+					onChange={handleTabChange}
+					indicatorColor="primary"
+					textColor="primary"
+				>
+					<Tab label="Studio" classes={{ root: classes.tab }} >
+					</Tab>
+					<Tab label="Outline" classes={{ root: classes.tab }}>
+					</Tab>
+					<Tab label="Overview" classes={{ root: classes.tab }}>
+					</Tab>
+				</Tabs>
 				<TextField id="outlined-basic" placeholder="Search components" variant="outlined" />
 				<TreeView
 					className={classes.root}

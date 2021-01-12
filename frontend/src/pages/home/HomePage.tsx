@@ -5,6 +5,8 @@ import {CKEditor} from '@ckeditor/ckeditor5-react';
 //import CKEditorCustom from '../../components/CKEditor/CKEditorCustom';
 import InlineEditor from '@ckeditor/ckeditor5-build-inline';
 import DIVConversionPlugin from '../../components/CKEditor/DIVConversionPlugin';
+import LabelConversionPlugin from '../../components/CKEditor/LabelConversionPlugin';
+import SpanConversionPlugin from '../../components/CKEditor/SpanConversionPlugin';
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 
@@ -17,7 +19,7 @@ export const HomePage: FC<{}> = observer(({}) => {
             <h1 style={{marginBottom:50}}>Inline editor</h1>
             <CKEditor
             editor={InlineEditor}
-            config={{extraPlugins:[DIVConversionPlugin]}}
+            config={{extraPlugins:[DIVConversionPlugin,LabelConversionPlugin,SpanConversionPlugin]}}
             data={sCKEditor.data}
             onReady={ editor => {
                 // You can store the "editor" and use when it is needed.
@@ -33,7 +35,9 @@ export const HomePage: FC<{}> = observer(({}) => {
             } }
             onFocus={ ( event, editor ) => {
                 console.log( 'Focus.', editor );
-            } }/></div>
+            } }
+            />
+            </div>
             </BasicLayout>
         );
 });

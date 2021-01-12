@@ -35,6 +35,8 @@ import InlineEditorBase from '@ckeditor/ckeditor5-editor-inline/src/inlineeditor
 // import FontBackgroundColor from '@ckeditor/ckeditor5-font/src/fontbackgroundcolor';
 
 import DIVConversionPlugin from './DIVConversionPlugin';
+import LabelConversionPlugin from './LabelConversionPlugin';
+import SpanConversionPlugin from './SpanConversionPlugin';
 
 export default class CKEditorCustom extends InlineEditorBase { }
 CKEditorCustom.builtinPlugins = [
@@ -69,7 +71,9 @@ CKEditorCustom.builtinPlugins = [
     // FontColor,
     // FontSize,
     // FontBackgroundColor,
-    DIVConversionPlugin
+    DIVConversionPlugin,
+    LabelConversionPlugin,
+    SpanConversionPlugin
 ];
 
 // Editor configuration.

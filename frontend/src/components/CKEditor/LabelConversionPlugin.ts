@@ -1,4 +1,4 @@
-export default function DIVConversionPlugin(editor) {
+export default function LabelConversionPlugin(editor) {
     let debug = false;
     if (debug) { console.log("convertDiv") }
 
@@ -6,9 +6,9 @@ export default function DIVConversionPlugin(editor) {
     this.init = function () {
         if (debug) { console.log("convertDiv.init") }
         let thisEditor = this.editor;
-        thisEditor.model.schema.register('div', {
+        thisEditor.model.schema.register('label', {
             allowWhere: '$text',
-            allowContentOf: '$block',
+            allowContentOf: '$block'
         });
 
     };
@@ -23,28 +23,28 @@ export default function DIVConversionPlugin(editor) {
                     context: context
                 })
             }
-            if (context.endsWith('div')) {
+            if (context.endsWith('label')) {
                 if (debug) { console.log("convertDiv.addAttributeCheck.endsWith( 'div' )") }
                 return true;
             }
         });
         // The view-to-model converter converting a view <div> with all its attributes to the model.
         thisEditor.conversion.for('upcast').elementToElement({
-            view: 'div',
+            view: 'label',
             model: (viewElement, { writer: modelWriter }) => {
                 if (debug) {
                     console.log("convertDiv", {
                         viewElement: viewElement
                     })
                 }
-                return modelWriter.createElement('div', viewElement.getAttributes());
+                return modelWriter.createElement('label', viewElement.getAttributes());
             }
         });
 
         // The model-to-view converter for the <div> element (attributes are converted separately).
         thisEditor.conversion.for('downcast').elementToElement({
-            model: 'div',
-            view: 'div'
+            model: 'label',
+            view: 'label'
         });
 
         // The model-to-view converter for <div> attributes.
@@ -58,7 +58,7 @@ export default function DIVConversionPlugin(editor) {
                     })
                 }
                 // Convert <div> attributes only.
-                if (data.item.name !== 'div') {
+                if (data.item.name !== 'label') {
                     return;
                 }
 

@@ -12,7 +12,9 @@ export class CKEditorStore {
     }
     @action async init() {
         this.set_data(`<p><div style="color:red" onclick="alert('hello DIV')" preset="div tag">This is DIV</div>
-        <div style="color:blue" preset="div tag">This is DIV 2</div></p>`);
+        <div style="color:blue" preset="div tag">This is DIV 2</div></p>
+        <label style="color:red" onclick="alert('hello label')" for="male">Male</label>
+        <span style="color:blue">blue</span>`);
         return;
         //TODO: GET API
         const [err, dataGet] = await aFetch<{}>("GET", `/get.php`);
