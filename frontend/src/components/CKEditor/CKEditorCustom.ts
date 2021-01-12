@@ -37,6 +37,7 @@ import InlineEditorBase from '@ckeditor/ckeditor5-editor-inline/src/inlineeditor
 import DIVConversionPlugin from './DIVConversionPlugin';
 import LabelConversionPlugin from './LabelConversionPlugin';
 import SpanConversionPlugin from './SpanConversionPlugin';
+import AnchorConversionPlugin from './AnchorConversionPlugin';
 
 export default class CKEditorCustom extends InlineEditorBase { }
 CKEditorCustom.builtinPlugins = [
@@ -73,7 +74,8 @@ CKEditorCustom.builtinPlugins = [
     // FontBackgroundColor,
     DIVConversionPlugin,
     LabelConversionPlugin,
-    SpanConversionPlugin
+    SpanConversionPlugin,
+    AnchorConversionPlugin
 ];
 
 // Editor configuration.

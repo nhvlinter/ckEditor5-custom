@@ -7,6 +7,7 @@ import InlineEditor from '@ckeditor/ckeditor5-build-inline';
 import DIVConversionPlugin from '../../components/CKEditor/DIVConversionPlugin';
 import LabelConversionPlugin from '../../components/CKEditor/LabelConversionPlugin';
 import SpanConversionPlugin from '../../components/CKEditor/SpanConversionPlugin';
+import AnchorConversionPlugin from '../../components/CKEditor/AnchorConversionPlugin';
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 
@@ -19,7 +20,7 @@ export const HomePage: FC<{}> = observer(({}) => {
             <h1 style={{marginBottom:50}}>Inline editor</h1>
             <CKEditor
             editor={InlineEditor}
-            config={{extraPlugins:[DIVConversionPlugin,LabelConversionPlugin,SpanConversionPlugin]}}
+            config={{extraPlugins:[DIVConversionPlugin,LabelConversionPlugin,SpanConversionPlugin,AnchorConversionPlugin]}}
             data={sCKEditor.data}
             onReady={ editor => {
                 // You can store the "editor" and use when it is needed.

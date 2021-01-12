@@ -28,7 +28,7 @@ export default function SpanConversionPlugin(editor) {
                 return true;
             }
         });
-        // The view-to-model converter converting a view <div> with all its attributes to the model.
+        // The view-to-model converter converting a view <span> with all its attributes to the model.
         thisEditor.conversion.for('upcast').elementToElement({
             view: 'span',
             model: (viewElement, { writer: modelWriter }) => {
@@ -41,13 +41,13 @@ export default function SpanConversionPlugin(editor) {
             }
         });
 
-        // The model-to-view converter for the <div> element (attributes are converted separately).
+        // The model-to-view converter for the <span> element (attributes are converted separately).
         thisEditor.conversion.for('downcast').elementToElement({
             model: 'span',
             view: 'span'
         });
 
-        // The model-to-view converter for <div> attributes.
+        // The model-to-view converter for <span> attributes.
         // Note that a lower-level, event-based API is used here.
         thisEditor.conversion.for('downcast').add(dispatcher => {
             if (debug) { console.log("convertSpan.conversion.downcast") }

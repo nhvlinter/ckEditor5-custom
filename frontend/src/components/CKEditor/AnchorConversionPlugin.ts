@@ -1,71 +1,70 @@
-export default function LabelConversionPlugin(editor) {
-    let debug = false;
-    if (debug) { console.log("convertDiv") }
+export default function AnchorConversionPlugin(editor) {
+    let debug = true;
+    if (debug) { console.log("convertAnchor") }
 
     this.editor = editor;
     this.init = function () {
-        if (debug) { console.log("convertDiv.init") }
+        if (debug) { console.log("convertAnchor.init") }
         let thisEditor = this.editor;
-        thisEditor.model.schema.register('label', {
+        thisEditor.model.schema.register('a', {
             allowWhere: '$text',
             allowContentOf: '$block'
         });
-
     };
 
     this.afterInit = function () {
-        if (debug) { console.log("convertDiv.afterInit") }
+        if (debug) { console.log("convertAnchor.afterInit") }
         let thisEditor = this.editor;
 
         thisEditor.model.schema.addAttributeCheck(context => {
             if (debug) {
-                console.log("convertDiv.addAttributeCheck", {
+                console.log("convertAnchor.addAttributeCheck", {
                     context: context
                 })
             }
-            if (context.endsWith('label')) {
-                if (debug) { console.log("convertDiv.addAttributeCheck.endsWith( 'div' )") }
+            if (context.endsWith('a')) {
+                if (debug) { console.log("convertAnchor.addAttributeCheck.endsWith( 'a' )") }
                 return true;
             }
         });
-        // The view-to-model converter converting a view <label> with all its attributes to the model.
+        // The view-to-model converter converting a view <a> with all its attributes to the model.
         thisEditor.conversion.for('upcast').elementToElement({
-            view: 'label',
+            view: 'a',
             model: (viewElement, { writer: modelWriter }) => {
                 if (debug) {
-                    console.log("convertDiv", {
+                    console.log("convertAnchor", {
                         viewElement: viewElement
                     })
                 }
-                return modelWriter.createElement('label', viewElement.getAttributes());
+                return modelWriter.createElement('a', viewElement.getAttributes());
             }
         });
 
-        // The model-to-view converter for the <label> element (attributes are converted separately).
+        // The model-to-view converter for the <a> element (attributes are converted separately).
         thisEditor.conversion.for('downcast').elementToElement({
-            model: 'label',
-            view: 'label'
+            model: 'a',
+            view: 'a',
         });
 
-        // The model-to-view converter for <label> attributes.
+        // The model-to-view converter for <a> attributes.
         // Note that a lower-level, event-based API is used here.
         thisEditor.conversion.for('downcast').add(dispatcher => {
-            if (debug) { console.log("convertDiv.conversion.downcast") }
+            if (debug) { console.log("convertAnchor.conversion.downcast") }
             dispatcher.on('attribute', (evt, data, conversionApi) => {
                 if (debug) {
-                    console.log("convertDiv.conversion.downcast.dispatcher:attribute", {
+                    console.log("convertAnchor.conversion.downcast.dispatcher:attribute", {
                         evt: evt, data: data, conversionApi: conversionApi
                     })
                 }
-                // Convert <label> attributes only.
-                if (data.item.name !== 'label') {
+                // Convert <a> attributes only.
+                if (data.item.name !== 'a') {
                     return;
                 }
 
                 const viewWriter = conversionApi.writer;
                 const view = conversionApi.mapper.toViewElement(data.item);
                 if (debug) {
-                    console.log("convertDiv.conversion.downcast.dispatcher:attribute", {
+                    console.log("convertAnchor.conversion.downcast.dispatcher:attribute", {
                         viewWriter: viewWriter, view: view
                     })
                 }
@@ -73,7 +72,8 @@ export default function LabelConversionPlugin(editor) {
                 // In the model-to-view conversion we convert changes.
                 // An attribute can be added or removed or changed.
                 // The below code handles all 3 cases.
-                if (data.attributeNewValue) {
+
+                if (data.attributeNewValue && data.attributeKey != "href") {
                     viewWriter.setAttribute(data.attributeKey, data.attributeNewValue, view);
                 } else {
                     viewWriter.removeAttribute(data.attributeKey, view);
