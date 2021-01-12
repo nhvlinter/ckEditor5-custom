@@ -6,33 +6,36 @@ import {CKEditor} from '@ckeditor/ckeditor5-react';
 import InlineEditor from '@ckeditor/ckeditor5-build-inline';
 import DIVConversionPlugin from '../../components/CKEditor/DIVConversionPlugin';
 import styles from "./HomePage.module.scss";
+import { BasicLayout } from '../../layouts/BasicLayout';
 
 export const HomePage: FC<{}> = observer(({}) => {
     const { sCKEditor } = useStore();
     useEffect(()=>{
         sCKEditor.init();
     });
-    return (<div>
-        <h1 style={{marginBottom:50}}>Inline editor</h1>
-        <CKEditor
-        editor={InlineEditor}
-        config={{extraPlugins:[DIVConversionPlugin]}}
-        data={sCKEditor.data}
-        onReady={ editor => {
-            // You can store the "editor" and use when it is needed.
-            console.log( 'Editor is ready to use!', editor );
-        } }
-        onChange={ ( event, editor ) => {
-            const data = editor.getData();
-            sCKEditor.update(data);
-            console.log( { event, editor, data } );
-        } }
-        onBlur={ ( event, editor ) => {
-            console.log( 'Blur.', editor );
-        } }
-        onFocus={ ( event, editor ) => {
-            console.log( 'Focus.', editor );
-        } }/></div>);
+    return (<BasicLayout><div>
+            <h1 style={{marginBottom:50}}>Inline editor</h1>
+            <CKEditor
+            editor={InlineEditor}
+            config={{extraPlugins:[DIVConversionPlugin]}}
+            data={sCKEditor.data}
+            onReady={ editor => {
+                // You can store the "editor" and use when it is needed.
+                console.log( 'Editor is ready to use!', editor );
+            } }
+            onChange={ ( event, editor ) => {
+                const data = editor.getData();
+                sCKEditor.update(data);
+                console.log( { event, editor, data } );
+            } }
+            onBlur={ ( event, editor ) => {
+                console.log( 'Blur.', editor );
+            } }
+            onFocus={ ( event, editor ) => {
+                console.log( 'Focus.', editor );
+            } }/></div>
+            </BasicLayout>
+        );
 });
 
 
