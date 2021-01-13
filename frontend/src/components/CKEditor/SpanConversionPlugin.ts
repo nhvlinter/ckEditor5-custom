@@ -1,84 +1,88 @@
 export default function SpanConversionPlugin(editor) {
     let debug = false;
-    if (debug) { console.log("convertSpan") }
+    if (debug) {
+        console.log("convertSpan")
+    }
 
     this.editor = editor;
+
     this.init = function () {
-        if (debug) { console.log("convertSpan.init") }
+        if (debug) {
+            console.log("convertSpan.init")
+        }
+
         let thisEditor = this.editor;
         thisEditor.model.schema.register('span', {
-            allowWhere: '$text',
-            allowContentOf: '$block'
+            inheritAllFrom: 'paragraph',
+            allowAttributes: ['class']
         });
-
     };
-
     this.afterInit = function () {
-        if (debug) { console.log("convertSpan.afterInit") }
-        let thisEditor = this.editor;
+        if (debug) {
+            console.log("convertSpan.afterInit")
+        }
 
-        thisEditor.model.schema.addAttributeCheck(context => {
-            if (debug) {
-                console.log("convertSpan.addAttributeCheck", {
-                    context: context
-                })
-            }
-            if (context.endsWith('span')) {
-                if (debug) { console.log("convertSpan.addAttributeCheck.endsWith( 'span' )") }
-                return true;
-            }
-        });
-        // The view-to-model converter converting a view <span> with all its attributes to the model.
+        let thisEditor = this.editor;
+        // Tell the editor that <a target="..."></a> converts into the "linkTarget" attribute in the model.
+        // editor.conversion.for( 'upcast' ).attributeToAttribute( {
+        //     view: 'span',
+        //     model: 'span',
+        //     converterPriority: 'high'
+        // } );
+
         thisEditor.conversion.for('upcast').elementToElement({
             view: 'span',
             model: (viewElement, { writer: modelWriter }) => {
+                let attr = viewElement.getAttributes();
+                attr['contenteditable'] = 'false';
                 if (debug) {
-                    console.log("convertSpan", {
-                        viewElement: viewElement
+                    console.log("convertSpan.conversion.forUpcast.elementToElement", {
+                        viewElement: viewElement, attr: attr
                     })
                 }
                 return modelWriter.createElement('span', viewElement.getAttributes());
-            }
+            },
+            converterPriority: 'low'
         });
 
-        // The model-to-view converter for the <span> element (attributes are converted separately).
+
         thisEditor.conversion.for('downcast').elementToElement({
             model: 'span',
-            view: 'span'
+            view: (modelElement, conversionApi) => {
+                const modelWriter = conversionApi.writer;
+                let view = modelWriter.createAttributeElement('span', modelElement.getAttributes(), { priority: 0 });
+
+                if (debug) {
+                    console.log("convertInput.downcast.elementToElement", {
+                        modelElement: modelElement, view: view
+                    })
+                }
+                return view;
+
+                // return writer.createContainerElement( 'h' + modelElement.getAttribute( 'level' ) );
+            },
+            converterPriority: 'low'
         });
 
-        // The model-to-view converter for <span> attributes.
-        // Note that a lower-level, event-based API is used here.
-        thisEditor.conversion.for('downcast').add(dispatcher => {
-            if (debug) { console.log("convertSpan.conversion.downcast") }
-            dispatcher.on('attribute', (evt, data, conversionApi) => {
-                if (debug) {
-                    console.log("convertSpan.conversion.downcast.dispatcher:attribute", {
-                        evt: evt, data: data, conversionApi: conversionApi
-                    })
-                }
-                // Convert <a> attributes only.
-                if (data.item.name !== 'span') {
-                    return;
-                }
+        // thisEditor.conversion.for( 'downcast' ).add( dispatcher => {
+        //     dispatcher.on( 'attribute', ( evt, data, conversionApi ) => {
+        //         if ( data.item.name !== 'span' ) {
+        //             return;
+        //         }
+        //         const viewWriter = conversionApi.writer;
+        //         const viewDiv = conversionApi.mapper.toViewElement( data.item );
+        //
+        //         // In the model-to-view conversion we convert changes.
+        //         // An attribute can be added or removed or changed.
+        //         // The below code handles all 3 cases.
+        //         if ( data.attributeNewValue ) {
+        //             viewWriter.setAttribute( data.attributeKey, data.attributeNewValue, viewDiv );
+        //         } else {
+        //             viewWriter.removeAttribute( data.attributeKey, viewDiv );
+        //         }
+        //     } );
+        // } );
 
-                const viewWriter = conversionApi.writer;
-                const view = conversionApi.mapper.toViewElement(data.item);
-                if (debug) {
-                    console.log("convertSpan.conversion.downcast.dispatcher:attribute", {
-                        viewWriter: viewWriter, view: view
-                    })
-                }
 
-                // In the model-to-view conversion we convert changes.
-                // An attribute can be added or removed or changed.
-                // The below code handles all 3 cases.
-                if (data.attributeNewValue) {
-                    viewWriter.setAttribute(data.attributeKey, data.attributeNewValue, view);
-                } else {
-                    viewWriter.removeAttribute(data.attributeKey, view);
-                }
-            });
-        } );
     };
 }
