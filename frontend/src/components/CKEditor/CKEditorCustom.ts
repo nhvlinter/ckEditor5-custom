@@ -38,6 +38,7 @@ import DIVConversionPlugin from './DIVConversionPlugin';
 import LabelConversionPlugin from './LabelConversionPlugin';
 import SpanConversionPlugin from './SpanConversionPlugin';
 import AnchorConversionPlugin from './AnchorConversionPlugin';
+import ImageConversionPlugin from './ImageConversionPlugin';
 
 export default class CKEditorCustom extends InlineEditorBase { }
 CKEditorCustom.builtinPlugins = [
@@ -75,7 +76,8 @@ CKEditorCustom.builtinPlugins = [
     DIVConversionPlugin,
     LabelConversionPlugin,
     SpanConversionPlugin,
-    AnchorConversionPlugin
+    AnchorConversionPlugin,
+    ImageConversionPlugin
 ];
 
 // Editor configuration.

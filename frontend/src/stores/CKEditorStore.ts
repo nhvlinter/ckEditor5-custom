@@ -15,7 +15,8 @@ export class CKEditorStore {
         <div style="color:blue" preset="div tag">This is DIV 2</div></p>
         <label style="color:red" onclick="alert('hello label')" for="male">Male</label>
         <span style="color:blue">blue</span>
-        <a href="https://www.w3schools.com">Visit W3Schools.com!</a>`);
+        <a href="https://www.w3schools.com">Visit W3Schools.com!</a>
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp-YkmdkiXsrubFUF3mhz7QRGq1yFF7bnAtA&usqp=CAU" alt="Flowers in Chania" width="460" height="345">`);
         return;
         //TODO: GET API
         const [err, dataGet] = await aFetch<{}>("GET", `/get.php`);
