@@ -14,7 +14,6 @@ export class CKEditorStore {
         this.set_data(`<div style="color:red" onclick="alert('hello DIV')" preset="div tag">This is DIV</div>
         <div style="color:blue" preset="div tag">This is DIV 2</div>
         <label style="color:red" onclick="alert('hello label')" for="male">Male</label>
-        <i class="fa fa-cloud" style="font-size:60px;color:lightblue;text-shadow:2px 2px 4px #000000;"></i>
         <span style="color:blue">blue</span>
         <a href="https://www.w3schools.com" style="color:blue">Visit W3Schools.com!</a>
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRp-YkmdkiXsrubFUF3mhz7QRGq1yFF7bnAtA&usqp=CAU" alt="Flowers in Chania" width="460" height="345">
@@ -23,7 +22,7 @@ export class CKEditorStore {
             <input type="text" id="fname" name="fname" value="John"><br>
             <label for="lname">Last name:</label><br>
             <input type="text" id="lname" name="lname" value="Doe"><br><br>
-            <input type="submit" value="Submit">
+            <input type="submit" value="Submit" style="color:blue">
         </form> 
         <ul style="list-style-type:circle">
             <li>Coffee</li>
@@ -39,7 +38,10 @@ export class CKEditorStore {
         <p>This is<sub> subscript</sub> and <sup>superscript</sup></p>
         <a href="https://www.w3schools.com">Visit W3Schools.com!</a>
         <button type="button" onclick="alert('Hello world!')">Click Me!</button>
-        <h1>Hello World</h1>`);
+        <h1>Hello World</h1>
+        <div>
+        <i class="fa fa-cloud" style="font-size:60px;color:blue;text-shadow:2px 2px 4px #000000;"></i>
+        </div>`);
         return;
         //TODO: GET API
         const [err, dataGet] = await aFetch<{}>("GET", `/get.php`);
