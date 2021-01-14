@@ -1,0 +1,15 @@
+{
+    "email" : {
+        "provider" : "zoho",
+        "appClientId" : "1000.WD6UOTFN0G1QOYM1PD64D51KS46VQR",
+        "appClientSecret" : "bd898c0fb67b1af2c41d901a4e18367ba31d5b2e88",
+        "refreshToken" : "1000.619cffbf0050f811313b06682c2582b4.bf6772acd385d1c8a653620f89416b59",
+        "address" : "admin28@cup28.be",
+        "name" : "Cup 28",
+        "host" : "smtp.zoho.eu",
+        "port" : 465,
+        "encryption" : "ssl"
+    },
+    "contactAddress" : "info@salesteck.be",
+    "quotationAddress" : "info@salesteck.be"
+}

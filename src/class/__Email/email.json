@@ -1,0 +1,14 @@
+{
+    "email" : {
+        "provider" : "google",
+        "appClientId" : "1040492421487-ftgoq57qp61b44kc4u8q7f8fg7un9esf.apps.googleusercontent.com",
+        "appClientSecret" : "hBU_EZSr4_cXExNELsX6fm2g",
+        "refreshToken" : "1//09hmALkDxyb_kCgYIARAAGAkSNwF-L9IrdgtwwO5wQM-zvsuDTTmZWryY4aiwYyayXtnF9KK8p1GrCfxayUOoc_msNJBhv9p2VZI",
+        "address" : "noreply@salesteck.be",
+        "host" : "smtp.gmail.com",
+        "port" : 465,
+        "encryption" : "ssl"
+    },
+    "contactAddress" : "info@salesteck.be",
+    "quotationAddress" : "info@salesteck.be"
+}

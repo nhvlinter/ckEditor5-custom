@@ -1,0 +1,22 @@
+{
+    "name": "salesteck/com",
+    "description": "Salesteck website",
+    "minimum-stability": "stable",
+    "license": "Salesteck.com",
+    "authors": [
+        {
+            "name": "Son Nguyen",
+            "email": "son.nguyen@salesteck.com"
+        }
+    ],
+    "config": {
+        "optimize-autoloader": true
+    },
+    "autoload": {
+        "psr-4": {
+        },
+        "classmap": [
+            "src/class"
+        ]
+    }
+}
