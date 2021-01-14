@@ -9,6 +9,13 @@ import LabelConversionPlugin from '../../components/CKEditor/LabelConversionPlug
 import SpanConversionPlugin from '../../components/CKEditor/SpanConversionPlugin';
 import AnchorConversionPlugin from '../../components/CKEditor/AnchorConversionPlugin';
 import ImageConversionPlugin from '../../components/CKEditor/ImageConversionPlugin';
+import IconConversionPlugin from '../../components/CKEditor/IconConversionPlugin';
+import FormConversionPlugin from '../../components/CKEditor/FormConversionPlugin';
+import UlConversionPlugin from '../../components/CKEditor/UlConversionPlugin';
+import InputConversionPlugin from '../../components/CKEditor/InputConversionPlugin';
+import TextAreaConversionPlugin from '../../components/CKEditor/TextAreaConversionPlugin';
+import ATagConversionPlugin from '../../components/CKEditor/ATagConversionPlugin';
+import BtnConversionPlugin from '../../components/CKEditor/BtnConversionPlugin';
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 
@@ -22,7 +29,9 @@ export const HomePage: FC<{}> = observer(({}) => {
             <CKEditor
             editor={InlineEditor}
             config={{extraPlugins:[DIVConversionPlugin,LabelConversionPlugin,SpanConversionPlugin,
-                AnchorConversionPlugin,ImageConversionPlugin]}}
+                AnchorConversionPlugin,ImageConversionPlugin,IconConversionPlugin,FormConversionPlugin,
+                UlConversionPlugin,InputConversionPlugin,TextAreaConversionPlugin,ATagConversionPlugin,
+                BtnConversionPlugin]}}
             data={sCKEditor.data}
             onReady={ editor => {
                 // You can store the "editor" and use when it is needed.

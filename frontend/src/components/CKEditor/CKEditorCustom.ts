@@ -39,6 +39,14 @@ import LabelConversionPlugin from './LabelConversionPlugin';
 import SpanConversionPlugin from './SpanConversionPlugin';
 import AnchorConversionPlugin from './AnchorConversionPlugin';
 import ImageConversionPlugin from './ImageConversionPlugin';
+import IconConversionPlugin from './IconConversionPlugin';
+import FormConversionPlugin from './FormConversionPlugin';
+import UlConversionPlugin from './UlConversionPlugin';
+import InputConversionPlugin from './InputConversionPlugin';
+import TextAreaConversionPlugin from './TextAreaConversionPlugin';
+import ATagConversionPlugin from './ATagConversionPlugin';
+import BtnConversionPlugin from './BtnConversionPlugin';
+import H_P_attrConversionPlugin from './H_P_attrConversionPlugin';
 
 export default class CKEditorCustom extends InlineEditorBase { }
 CKEditorCustom.builtinPlugins = [
@@ -77,7 +85,15 @@ CKEditorCustom.builtinPlugins = [
     LabelConversionPlugin,
     SpanConversionPlugin,
     AnchorConversionPlugin,
-    ImageConversionPlugin
+    ImageConversionPlugin,
+    IconConversionPlugin,
+    FormConversionPlugin,
+    UlConversionPlugin,
+    InputConversionPlugin,
+    TextAreaConversionPlugin,
+    ATagConversionPlugin,
+    BtnConversionPlugin,
+    H_P_attrConversionPlugin
 ];
 
 // Editor configuration.

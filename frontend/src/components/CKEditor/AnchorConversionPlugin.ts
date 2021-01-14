@@ -1,5 +1,5 @@
 export default function AnchorConversionPlugin(editor) {
-    let debug = true;
+    let debug = false;
     if (debug) { console.log("convertAnchor") }
 
     this.editor = editor;

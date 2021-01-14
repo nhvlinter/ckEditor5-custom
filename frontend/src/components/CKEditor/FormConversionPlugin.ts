@@ -1,71 +1,82 @@
-export default function SpanConversionPlugin(editor) {
+export default function FormConversionPlugin(editor) {
     let debug = false;
-    if (debug) { console.log("convertSpan") }
+    if (debug) {
+        console.log("convertForm")
+    }
 
     this.editor = editor;
     this.init = function () {
-        if (debug) { console.log("convertSpan.init") }
+        if (debug) {
+            console.log("convertForm.init")
+        }
         let thisEditor = this.editor;
-        thisEditor.model.schema.register('span', {
-            allowWhere: '$text',
-            allowContentOf: '$block'
+        thisEditor.model.schema.register('form', {
+            allowWhere: '$block',
+            allowContentOf: '$root',
+            allowIn: ['div']
         });
 
     };
 
     this.afterInit = function () {
-        if (debug) { console.log("convertSpan.afterInit") }
+        if (debug) {
+            console.log("convertForm.afterInit")
+        }
         let thisEditor = this.editor;
 
         thisEditor.model.schema.addAttributeCheck(context => {
             if (debug) {
-                console.log("convertSpan.addAttributeCheck", {
+                console.log("convertForm.addAttributeCheck", {
                     context: context
                 })
             }
-            if (context.endsWith('span')) {
-                if (debug) { console.log("convertSpan.addAttributeCheck.endsWith( 'span' )") }
+            if (context.endsWith('form')) {
+                if (debug) {
+                    console.log("convertForm.addAttributeCheck.endsWith( 'form' )")
+                }
                 return true;
             }
         });
         // The view-to-model converter converting a view <div> with all its attributes to the model.
         thisEditor.conversion.for('upcast').elementToElement({
-            view: 'span',
+            view: 'form',
             model: (viewElement, { writer: modelWriter }) => {
                 if (debug) {
-                    console.log("convertSpan", {
+                    console.log("convertForm", {
                         viewElement: viewElement
                     })
                 }
-                return modelWriter.createElement('span', viewElement.getAttributes());
+                return modelWriter.createElement('form', viewElement.getAttributes());
             }
         });
 
         // The model-to-view converter for the <div> element (attributes are converted separately).
         thisEditor.conversion.for('downcast').elementToElement({
-            model: 'span',
-            view: 'span'
+            model: 'form',
+            view: 'form'
         });
 
         // The model-to-view converter for <div> attributes.
         // Note that a lower-level, event-based API is used here.
         thisEditor.conversion.for('downcast').add(dispatcher => {
-            if (debug) { console.log("convertSpan.conversion.downcast") }
+            if (debug) {
+                console.log("convertForm.conversion.downcast")
+            }
             dispatcher.on('attribute', (evt, data, conversionApi) => {
                 if (debug) {
-                    console.log("convertSpan.conversion.downcast.dispatcher:attribute", {
+                    console.log("convertForm.conversion.downcast.dispatcher:attribute", {
                         evt: evt, data: data, conversionApi: conversionApi
                     })
                 }
-                // Convert <a> attributes only.
-                if (data.item.name !== 'span') {
+                // Convert <div> attributes only.
+                if (data.item.name !== 'form') {
                     return;
                 }
 
                 const viewWriter = conversionApi.writer;
                 const view = conversionApi.mapper.toViewElement(data.item);
                 if (debug) {
-                    console.log("convertSpan.conversion.downcast.dispatcher:attribute", {
+                    console.log("convertForm.conversion.downcast.dispatcher:attribute", {
                         viewWriter: viewWriter, view: view
                     })
                 }
