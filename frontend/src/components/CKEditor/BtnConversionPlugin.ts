@@ -11,10 +11,10 @@ export default function BtnConversionPlugin(editor) {
             console.log("convertBtn.init")
         }
         let thisEditor = this.editor;
-        // thisEditor.model.schema.register('button', {
-        //     allowWhere: '$text', isInline: true,
-        //     allowContentOf: '$block', allowAttributes: ['class', 'id']
-        // });
+        thisEditor.model.schema.register('button', {
+            allowWhere: '$text', isInline: true,
+            allowContentOf: '$block', allowAttributes: ['class', 'id']
+        });
     };
     this.afterInit = function () {
         if (debug) {
