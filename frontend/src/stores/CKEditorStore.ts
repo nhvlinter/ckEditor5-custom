@@ -30,12 +30,11 @@ export class CKEditorStore {
             <li>Milk</li>
         </ul>
         <label for="w3review">Review of W3Schools:</label>
-        <textarea id="w3review" name="w3review" rows="4" cols="50" placeholder="TextArea">
+        <textarea id="w3review" name="w3review" rows="4" cols="50" placeholder="TextArea" >
             Hello World
         </textarea>
         <p><b>This text is bold</b></p>
         <p><i>This text is italic</i></p>
-        <p>This is<sub> subscript</sub> and <sup>superscript</sup></p>
         <a href="https://www.w3schools.com">Visit W3Schools.com!</a>
         <button type="button" style="background-color: red"  onclick="alert('Hello world!')">Click Me!</button>
         <h1>Hello World</h1>

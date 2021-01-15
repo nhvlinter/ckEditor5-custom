@@ -1,14 +1,11 @@
 export default function TextAreaConversionPlugin(editor) {
+
     let debug = false;
-    if (debug) {
-        console.log("convertTextArea")
-    }
+    if (debug) { console.log("convertTextarea") }
+
     this.editor = editor;
-    // Allow <div> elements in the model.
     this.init = function () {
-        if (debug) {
-            console.log("convertTextArea.init")
-        }
+        if (debug) { console.log("convertTextarea.init") }
         let thisEditor = this.editor;
         thisEditor.model.schema.register('textarea', {
             allowWhere: 'div',
@@ -20,86 +17,71 @@ export default function TextAreaConversionPlugin(editor) {
     };
 
     this.afterInit = function () {
-        if (debug) {
-            console.log("convertTextArea.afterInit")
-        }
+        if (debug) { console.log("convertTextarea.afterInit") }
         let thisEditor = this.editor;
-        // Allow <div> elements in the model to have all attributes.
+
         thisEditor.model.schema.addAttributeCheck(context => {
+            if (debug) {
+                console.log("convertTextarea.addAttributeCheck", {
+                    context: context
+                })
+            }
             if (context.endsWith('textarea')) {
+                if (debug) { console.log("convertTextarea.addAttributeCheck.endsWith( 'textarea' )") }
                 return true;
             }
         });
-        // The model-to-view converter for the <div> element (attributes are converted separately).
+        // The view-to-model converter converting a view <textarea> with all its attributes to the model.
+        thisEditor.conversion.for('upcast').elementToElement({
+            view: 'textarea',
+            model: (viewElement, { writer: modelWriter }) => {
+                if (debug) {
+                    console.log("convertTextarea", {
+                        viewElement: viewElement
+                    })
+                }
+                return modelWriter.createElement('textarea', viewElement.getAttributes());
+            }
+        });
+
+        // The model-to-view converter for the <textarea> element (attributes are converted separately).
         thisEditor.conversion.for('downcast').elementToElement({
             model: 'textarea',
-            view: (modelElement, conversionApi) => {
-                const modelWriter = conversionApi.writer;
-                let view = modelWriter.createAttributeElement('textarea', modelElement.getAttributes(), { priority: 5 });
-                // modelWriter.setAttribute('disabled', 'true', view);
-
-                if (debug) {
-                    console.log("convertTextArea.downcast.elementToElement", {
-                        modelElement: modelElement, view: view
-                    })
-                }
-                return view;
-
-                // return writer.createContainerElement( 'h' + modelElement.getAttribute( 'level' ) );
-            }
-        });
-        // The view-to-model converter converting a view <div> with all its attributes to the model.
-        thisEditor.conversion.for('upcast').elementToElement({
-            view: {
-                name: 'textarea'
-            },
-            model: (viewElement, { writer: modelWriter }) => {
-                let view = modelWriter.createElement('textarea', viewElement.getAttributes());
-                if (debug) {
-                    console.log("convertTextArea.upcast.elementToElement", {
-                        viewElement: viewElement, view: view
-                    })
-                }
-                // modelWriter.setAttribute('disabled', 'true', view);
-                return view;
-            }
-
+            view: 'textarea'
         });
 
+        // The model-to-view converter for <textarea> attributes.
+        // Note that a lower-level, event-based API is used here.
         thisEditor.conversion.for('downcast').add(dispatcher => {
-            dispatcher.on('element', (evt, data, conversionApi) => {
-                // if(debug){console.log("downcast|element:input")}
-                if (debug) {
-                    console.log(evt.name)
-                }
-            });
+            if (debug) { console.log("convertTextarea.conversion.downcast") }
             dispatcher.on('attribute', (evt, data, conversionApi) => {
-                // if(debug){console.log("downcast|attribute:disabled")}
                 if (debug) {
-                    console.log(evt.name)
+                    console.log("convertTextarea.conversion.downcast.dispatcher:attribute", {
+                        evt: evt, data: data, conversionApi: conversionApi
+                    })
                 }
-            });
-            dispatcher.on('properties', (evt, data, conversionApi) => {
-                // if(debug){console.log("downcast|attribute:disabled")}
+                // Convert <textarea> attributes only.
+                if (data.item.name !== 'textarea') {
+                    return;
+                }
+
+                const viewWriter = conversionApi.writer;
+                const view = conversionApi.mapper.toViewElement(data.item);
                 if (debug) {
-                    console.log(evt.name)
+                    console.log("convertTextarea.conversion.downcast.dispatcher:attribute", {
+                        viewWriter: viewWriter, view: view
+                    })
+                }
+
+                // In the model-to-view conversion we convert changes.
+                // An attribute can be added or removed or changed.
+                // The below code handles all 3 cases.
+                if (data.attributeNewValue) {
+                    viewWriter.setAttribute(data.attributeKey, data.attributeNewValue, view);
+                } else {
+                    viewWriter.removeAttribute(data.attributeKey, view);
                 }
             });
         });
-
-        thisEditor.conversion.for('upcast').add(dispatcher => {
-            dispatcher.on('element:input', (evt, data, conversionApi) => {
-                if (debug) {
-                    console.log("upcast|element:input")
-                }
-            });
-            dispatcher.on('attribute', (evt, data, conversionApi) => {
-                // if(debug){console.log("upcast|attribute:disabled")}
-                if (debug) {
-                    console.log(evt.name)
-                }
-            });
-        });
-
     };
 }
