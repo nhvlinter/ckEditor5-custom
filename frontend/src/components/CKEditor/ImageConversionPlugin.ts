@@ -53,5 +53,7 @@ export default function ImageConversionPlugin(editor) {
             });
         });
         setupCustomAttributeConversion('img', 'image', 'class', editor);
+        setupCustomAttributeConversion('img', 'image', 'width', editor);
+        setupCustomAttributeConversion('img', 'image', 'height', editor);
     };
 }
