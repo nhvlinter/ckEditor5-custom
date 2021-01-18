@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useStore } from '../../stores';
 
-import { Drawer, ListItem, ListItemText, ListItemIcon, IconButton, Divider, MenuList, MenuItem, List, Collapse, useMediaQuery } from '@material-ui/core';
+import { Drawer, AppBar, Button, Toolbar, IconButton, CssBaseline, ListItem, ListItemText, ListItemIcon, Divider, MenuList, MenuItem, List, Collapse, useMediaQuery } from '@material-ui/core';
 
 import { Usb, Apartment, SettingsInputComponent, Settings, Notifications, ChromeReaderMode, PermDataSetting, Category, HourglassFull, Group, FastRewind, FastForward, Adb, Announcement, Contacts, Home, Receipt, Event, ExpandLess, ExpandMore, LibraryBooks, Description, VpnKey, PermIdentity, School, HomeWork, Accessibility, MusicNote } from '@material-ui/icons';
 import PersonAddDisabledIcon from '@material-ui/icons/PersonAddDisabled';
@@ -18,13 +18,19 @@ import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import Typography from '@material-ui/core/Typography';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import TreeItem from '@material-ui/lab/TreeItem';
 import TreeView from '@material-ui/lab/TreeView';
 import TextField from '@material-ui/core/TextField';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import MenuIcon from '@material-ui/icons/Menu';
 import { cpus } from 'os';
+import clsx from 'clsx';
+
+const drawerWidth = 240;
+
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
 		root: {
@@ -74,7 +80,50 @@ const useStyles = makeStyles((theme: Theme) =>
 			minWidth: "0px",
 			width: "80px",
 			textTransform: 'none',
-		}
+		},
+		menuButton: {
+			marginRight: theme.spacing(2),
+		},
+		hide: {
+			display: 'none',
+		},
+		appBar: {
+			transition: theme.transitions.create(['margin', 'width'], {
+				easing: theme.transitions.easing.sharp,
+				duration: theme.transitions.duration.leavingScreen,
+			}),
+		},
+		appBarShift: {
+			width: `calc(100% - ${drawerWidth}px)`,
+			marginLeft: drawerWidth,
+			transition: theme.transitions.create(['margin', 'width'], {
+				easing: theme.transitions.easing.easeOut,
+				duration: theme.transitions.duration.enteringScreen,
+			}),
+		},
+		drawer: {
+			width: drawerWidth,
+			flexShrink: 0,
+			whiteSpace: 'nowrap',
+		  },
+		drawerOpen: {
+			width: drawerWidth,
+			transition: theme.transitions.create('width', {
+				easing: theme.transitions.easing.sharp,
+				duration: theme.transitions.duration.enteringScreen,
+			}),
+		},
+		drawerClose: {
+			transition: theme.transitions.create('width', {
+				easing: theme.transitions.easing.sharp,
+				duration: theme.transitions.duration.leavingScreen,
+			}),
+			overflowX: 'hidden',
+			width: theme.spacing(7) + 1,
+			[theme.breakpoints.up('sm')]: {
+				width: theme.spacing(0) + 1,
+			},
+		},
 	}),
 );
 
@@ -82,17 +131,36 @@ const useStyles = makeStyles((theme: Theme) =>
 export const SiderMenu: FC<{ collapsed: boolean }> = observer(({ collapsed }) => {
 	const [drawerWidth, setDrawerWidth] = React.useState(240);
 	const classes = useStyles(drawerWidth);
+	const theme = useTheme();
 	const [valueTab, setValueTab] = React.useState(0);
+	const [open, setOpen] = React.useState(true);
 	const handleTabChange = (event, newValue) => {
 		setValueTab(newValue);
 	};
+
+	const handleDrawerClose = () => {
+		setOpen(false);
+	};
+
+	const handleDrawerOpen = () => {
+		setOpen(true);
+	  };
+
 	return (
 		<ThemeProvider >
 			<Drawer
 				variant="permanent"
-				className={classNames(classes.paper, styles.drawer, collapsed ? styles.drawerClose : styles.drawerOpen)}
-				classes={{ paper: classNames(classes.paper, collapsed ? styles.drawerClose : styles.drawerOpen) }}
-				open={!collapsed}
+				className={clsx(classes.drawer, {
+					[classes.drawerOpen]: open,
+					[classes.drawerClose]: !open,
+				})}
+				classes={{
+					paper: clsx({
+						[classes.drawerOpen]: open,
+						[classes.drawerClose]: !open,
+					}),
+				}}
+				// open={false}
 				transitionDuration={2000}>
 				<Tabs
 					classes={{ root: classes.tabRoots }}
@@ -121,5 +189,10 @@ export const SiderMenu: FC<{ collapsed: boolean }> = observer(({ collapsed }) =>
 					</TreeItem>
 				</TreeView>
 			</Drawer>
+			<div >
+				<IconButton onClick={open ? handleDrawerClose : handleDrawerOpen}>
+					{open ? < ChevronLeftIcon/> : <ChevronRightIcon />}
+				</IconButton>
+			</div>
 		</ThemeProvider>)
 });
