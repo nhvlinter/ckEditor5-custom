@@ -13,7 +13,7 @@ export default function BtnConversionPlugin(editor) {
         let thisEditor = this.editor;
         thisEditor.model.schema.register('button', {
             allowWhere: '$text', isInline: true,
-            allowContentOf: '$block', allowAttributes: ['class', 'id']
+            allowContentOf: '$block', allowAttributes: ['class', 'id','type']
         });
     };
     this.afterInit = function () {
