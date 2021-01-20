@@ -1,7 +1,7 @@
 import {qs} from "../../utils/url";
 
 export const apiHost = new URL(process.env.REACT_APP_API!, location.href).toJSON();
-
+const versionPrefix = "ckeditor-custom/dist/public/";
 const headers: {[key:string]:string} = {
     'Content-Type': 'application/json',
     "Accept"      : "application/json",
@@ -28,7 +28,8 @@ export async function aFetch<T, TError = any>(
     init?: RequestInit,
 ) : Promise<[(IErrorData<TError>)|undefined, T]> {
     try {
-        const url = (method != "GET" || !body) ? new URL(input, apiHost) : qs(new URL(input, apiHost), body);
+        const apiService = (`${versionPrefix}${input}`).replace(/([^:]\/)\/+/g, "$1");
+        const url = (method != "GET" || !body) ? new URL(apiService, apiHost) : qs(new URL(apiService, apiHost), body);
         const response = await fetch(url.toJSON(), {
             method,
             headers: headers,
@@ -69,7 +70,8 @@ export async function uploadFile<T, TErrorData = any>(
     const { "Content-Type":_, ...hs }  = headers;
 
     try {
-        const url = new URL(input, apiHost);
+        const apiService = (`${versionPrefix}${input}`).replace(/([^:]\/)\/+/g, "$1");
+        const url = new URL(apiService, apiHost);
         const response = await fetch(url.toJSON(), {
             method,
             headers: hs,

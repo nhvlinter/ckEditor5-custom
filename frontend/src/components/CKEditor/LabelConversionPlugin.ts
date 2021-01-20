@@ -1,10 +1,10 @@
 export default function LabelConversionPlugin(editor) {
     let debug = false;
-    if (debug) { console.log("convertDiv") }
+    if (debug) { console.log("convertLabel") }
 
     this.editor = editor;
     this.init = function () {
-        if (debug) { console.log("convertDiv.init") }
+        if (debug) { console.log("convertLabel.init") }
         let thisEditor = this.editor;
         thisEditor.model.schema.register('label', {
             allowWhere: '$text',
@@ -14,17 +14,17 @@ export default function LabelConversionPlugin(editor) {
     };
 
     this.afterInit = function () {
-        if (debug) { console.log("convertDiv.afterInit") }
+        if (debug) { console.log("convertLabel.afterInit") }
         let thisEditor = this.editor;
 
         thisEditor.model.schema.addAttributeCheck(context => {
             if (debug) {
-                console.log("convertDiv.addAttributeCheck", {
+                console.log("convertLabel.addAttributeCheck", {
                     context: context
                 })
             }
             if (context.endsWith('label')) {
-                if (debug) { console.log("convertDiv.addAttributeCheck.endsWith( 'div' )") }
+                if (debug) { console.log("convertLabel.addAttributeCheck.endsWith( 'div' )") }
                 return true;
             }
         });
@@ -33,7 +33,7 @@ export default function LabelConversionPlugin(editor) {
             view: 'label',
             model: (viewElement, { writer: modelWriter }) => {
                 if (debug) {
-                    console.log("convertDiv", {
+                    console.log("convertLabel", {
                         viewElement: viewElement
                     })
                 }
@@ -50,10 +50,10 @@ export default function LabelConversionPlugin(editor) {
         // The model-to-view converter for <label> attributes.
         // Note that a lower-level, event-based API is used here.
         thisEditor.conversion.for('downcast').add(dispatcher => {
-            if (debug) { console.log("convertDiv.conversion.downcast") }
+            if (debug) { console.log("convertLabel.conversion.downcast") }
             dispatcher.on('attribute', (evt, data, conversionApi) => {
                 if (debug) {
-                    console.log("convertDiv.conversion.downcast.dispatcher:attribute", {
+                    console.log("convertLabel.conversion.downcast.dispatcher:attribute", {
                         evt: evt, data: data, conversionApi: conversionApi
                     })
                 }
@@ -65,7 +65,7 @@ export default function LabelConversionPlugin(editor) {
                 const viewWriter = conversionApi.writer;
                 const view = conversionApi.mapper.toViewElement(data.item);
                 if (debug) {
-                    console.log("convertDiv.conversion.downcast.dispatcher:attribute", {
+                    console.log("convertLabel.conversion.downcast.dispatcher:attribute", {
                         viewWriter: viewWriter, view: view
                     })
                 }
