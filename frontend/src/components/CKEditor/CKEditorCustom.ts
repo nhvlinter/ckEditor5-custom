@@ -93,7 +93,7 @@ CKEditorCustom.builtinPlugins = [
     TextAreaConversionPlugin,
     ATagConversionPlugin,
     BtnConversionPlugin,
-    H_P_attrConversionPlugin
+    H_P_attrConversionPlugin,
 ];
 
 // Editor configuration.

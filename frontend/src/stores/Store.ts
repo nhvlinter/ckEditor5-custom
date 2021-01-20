@@ -6,6 +6,7 @@ import { RouterStore, HistoryAdapter,  } from "mobx-state-router";
 import {history} from "../services/history";
 import {BaseStore} from "./BaseStore";
 import { CKEditorStore } from './CKEditorStore';
+import { ModalStore } from './ModalStore';
 export class Store extends BaseStore {
     routerStore         : RouterStore;
     constructor() {
@@ -16,4 +17,5 @@ export class Store extends BaseStore {
         historyAdapter.observeRouterStateChanges();
     }
     sCKEditor = new CKEditorStore(this);
+    sModal = new ModalStore(this);
 }
