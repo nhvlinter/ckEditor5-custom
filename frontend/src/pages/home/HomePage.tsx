@@ -18,6 +18,9 @@ import InputConversionPlugin from '../../components/CKEditor/InputConversionPlug
 import TextAreaConversionPlugin from '../../components/CKEditor/TextAreaConversionPlugin';
 import ATagConversionPlugin from '../../components/CKEditor/ATagConversionPlugin';
 import BtnConversionPlugin from '../../components/CKEditor/BtnConversionPlugin';
+import SectionConversionPlugin from '../../components/CKEditor/SectionConversionPlugin';
+import PConverstionPlugin from '../../components/CKEditor/PConverstionPlugin';
+import H3ConversionPlugin from '../../components/CKEditor/H3ConversionPlugin';
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 import { makeStyles } from '@material-ui/core/styles';
@@ -29,6 +32,7 @@ const useStyles = makeStyles((theme) => ({
             margin: theme.spacing(2),
         },
     },
+    
 }));
 
 export const HomePage: FC<{}> = observer(({ }) => {
@@ -75,52 +79,49 @@ export const HomePage: FC<{}> = observer(({ }) => {
     }, [action]);
 
     const reset = useCallback(() => {
-        console.log("Reseted ");
         sCKEditor.get().then(result => {
             if (result != null && result != "") {
-                // sModal.showToastSuccess("Reset successful");
                 window.location.href = "/";
             }
         })
     }, [sCKEditor]);
 
     const save = useCallback(() => {
+        console.log("Save ");
         sCKEditor.save().then(result => {
-            if (!result) {
-                // sModal.showToastSuccess("Save successful");
-
-            }
+            window.location.href = "/";
         })
     }, [sCKEditor]);
 
 
-    return (<BasicLayout><div>
-        <h1 style={{ marginBottom: 50 }}>Inline editor</h1>
-        <CKEditor
-            editor={InlineEditor}
-            config={{
-                extraPlugins: [DIVConversionPlugin, LabelConversionPlugin, SpanConversionPlugin,
-                    AnchorConversionPlugin, ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
-                    UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
-                    BtnConversionPlugin]
-            }}
-            data={sCKEditor.data}
-            onReady={editor => {
-                // You can store the "editor" and use when it is needed.
-                console.log('Editor is ready to use!', editor);
-            }}
-            onChange={(event, editor) => {
-                const data = editor.getData();
-                sCKEditor.set_dataChanges(data);
-            }}
-            onBlur={(event, editor) => {
-                console.log('Blur.', editor);
-            }}
-            onFocus={(event, editor) => {
-                console.log('Focus.', editor);
-            }}
-        />
-    </div>
+    return (<BasicLayout>
+        <div>
+            <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
+            <CKEditor
+                editor={InlineEditor}
+                config={{
+                    extraPlugins: [DIVConversionPlugin, LabelConversionPlugin, SpanConversionPlugin,
+                        AnchorConversionPlugin, ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
+                        UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
+                        BtnConversionPlugin, SectionConversionPlugin, PConverstionPlugin]
+                }}
+                data={sCKEditor.data}
+                onReady={editor => {
+                    // You can store the "editor" and use when it is needed.
+                    console.log('Editor is ready to use!', editor);
+                }}
+                onChange={(event, editor) => {
+                    const data = editor.getData();
+                    sCKEditor.ckeditor.set_content(data);
+                }}
+                onBlur={(event, editor) => {
+                    console.log('Blur.', editor);
+                }}
+                onFocus={(event, editor) => {
+                    console.log('Focus.', editor);
+                }}
+            />
+        </div>
         <div className={classes.btn}>
             <Button variant="contained" onClick={showDialogReset}>Reset</Button>
             <Button variant="contained" color="primary" onClick={showDialogSave}>

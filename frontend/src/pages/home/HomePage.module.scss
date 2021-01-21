@@ -1,0 +1,12 @@
+@import '../css/helpers/variables';
+
+.bg-image {
+    z-index: 4;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+  }
+
+  .bg-pattern {
+    background-image: "image/pattern15.png";
+  }

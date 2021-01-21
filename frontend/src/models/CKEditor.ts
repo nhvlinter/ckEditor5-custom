@@ -1,5 +1,5 @@
 import { observable, action, toJS, computed } from "mobx";
-import { aFetch } from "../services/api/fetch";
+import { aFetch, fetchFormData } from "../services/api/fetch";
 
 export class CKEditor {
     @observable id: string = "";
@@ -9,6 +9,14 @@ export class CKEditor {
         if (data != null) {
             Object.assign(this, data);
         }
+    }
+
+    @computed get getId() {
+        return this.id;
+    }
+
+    @computed get getContent() {
+        return this.content;
     }
 
     @action set_id = (v: string) => { this.id = v }
@@ -27,9 +35,11 @@ export class CKEditor {
     }
 
     static async save(e: CKEditor) {
-        const body = e.toJS();
-        const [err, x] = await aFetch<{}>("POST", `/api/index.php`, body);
-        return [err, (err ? undefined : new CKEditor(x))!] as const;
+        let formData = new FormData();
+        formData.append("id", e.getId);
+        formData.append("content", e.getContent);
+        console.log(e.getContent);
+        await fetchFormData("POST",`/api/index.php`, formData);
     }
 
 }
