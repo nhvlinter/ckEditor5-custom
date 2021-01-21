@@ -5,7 +5,10 @@
  * Date: 14-01-21
  * Time: 22:56
  */
-
+header('Access-Control-Allow-Origin: *'); 
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+http_response_code(200);
 
 use salesteck\api\RequestResponse;
 use salesteck\security\Security;
