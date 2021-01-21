@@ -1,53 +1,53 @@
-import {qs} from "../../utils/url";
+import { qs } from "../../utils/url";
 
 export const apiHost = new URL(process.env.REACT_APP_API!, location.href).toJSON();
 const versionPrefix = "ckeditor-custom/dist/public/";
-const headers: {[key:string]:string} = {
+const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
-    "Accept"      : "application/json",
+    "Accept": "application/json",
 }
-export function setAuthtoken(token:string){
+export function setAuthtoken(token: string) {
     if (!token) delete headers.Authorization;
     else headers.Authorization = `Bearer ${token}`;
 }
 
 interface IErrorData<T> extends Error {
-    status:number
-    error?:{
-        statusCode  : number;
-        message     : string;
-        errorCode   : string;
+    status: number
+    error?: {
+        statusCode: number;
+        message: string;
+        errorCode: string;
         errorObject?: T;
     }
 }
 
 export async function aFetch<T, TError = any>(
-    method:"GET"|"POST"|"PUT"|"DELETE",
+    method: "GET" | "POST" | "PUT" | "DELETE",
     input: string,
-    body ?: {},
+    body?: {},
     init?: RequestInit,
-) : Promise<[(IErrorData<TError>)|undefined, T]> {
+): Promise<[(IErrorData<TError>) | undefined, T]> {
     try {
         const apiService = (`${versionPrefix}${input}`).replace(/([^:]\/)\/+/g, "$1");
         const url = (method != "GET" || !body) ? new URL(apiService, apiHost) : qs(new URL(apiService, apiHost), body);
         const response = await fetch(url.toJSON(), {
             method,
             headers: headers,
-            mode:"cors",
-            ...((method != "GET" && body) ? {body: JSON.stringify(body)} : {}),
+            mode: "cors",
+            ...((method != "GET" && body) ? { body: JSON.stringify(body) } : {}),
             ...init
         });
         if (response.ok) {
             try {
                 const data = await response.json();
                 return [undefined, data as any as T];
-            } catch(e) {
+            } catch (e) {
                 console.warn(e);
                 return [undefined, null as any as T]
             }
         }
 
-        const err = Object.assign(new Error(response.statusText || String(response.status)), {status:response.status});
+        const err = Object.assign(new Error(response.statusText || String(response.status)), { status: response.status });
         try {
             const e = await response.json();
             return [Object.assign(err, e), null as any];
@@ -59,15 +59,31 @@ export async function aFetch<T, TError = any>(
     }
 }
 
+export async function fetchFormData<T, TError = any>(
+    method: "POST" | "PUT",
+    input: string,
+    body: FormData
+) {
+    const apiService = (`${versionPrefix}${input}`).replace(/([^:]\/)\/+/g, "$1");
+    const url = new URL(apiService, apiHost);
+    await fetch(url.toJSON(), {
+        method: method,
+        mode: "no-cors",
+        body: body
+    }).then(res => console.log(res),
+        (err) => console.log(err))
+
+}
+
 export async function uploadFile<T, TErrorData = any>(
-    method:"GET"|"POST"|"PUT"|"DELETE",
+    method: "GET" | "POST" | "PUT" | "DELETE",
     input: string,
     file: Blob,
     init?: RequestInit,
-) : Promise<[(Error & {data?:TErrorData})|null, T]> {
+): Promise<[(Error & { data?: TErrorData }) | null, T]> {
     const data = new FormData();
     data.append("files", file);
-    const { "Content-Type":_, ...hs }  = headers;
+    const { "Content-Type": _, ...hs } = headers;
 
     try {
         const apiService = (`${versionPrefix}${input}`).replace(/([^:]\/)\/+/g, "$1");
@@ -76,26 +92,26 @@ export async function uploadFile<T, TErrorData = any>(
             method,
             headers: hs,
             // credentials: 'include',
-            mode:"cors",
-            body:data,
+            mode: "cors",
+            body: data,
             ...init
         });
         if (response.ok) {
             try {
-                const {data} = await response.json();
+                const { data } = await response.json();
                 return [null, data as any as T];
-            } catch(e) {
+            } catch (e) {
                 console.warn(e);
                 return [null, null as any as T]
             }
         }
 
-        const {error} = await response.json();
+        const { error } = await response.json();
         const err = error != null ? new Error(error.message) : new Error(response.statusText || String(response.status));
 
         try {
-            const {data} = await response.json();
-            return [Object.assign(err, {data}), null as any];
+            const { data } = await response.json();
+            return [Object.assign(err, { data }), null as any];
         } catch {
             return [err, null as any];
         }

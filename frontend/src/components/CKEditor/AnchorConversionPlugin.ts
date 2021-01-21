@@ -8,7 +8,8 @@ export default function AnchorConversionPlugin(editor) {
         let thisEditor = this.editor;
         thisEditor.model.schema.register('a', {
             allowWhere: '$text',
-            allowContentOf: '$block'
+            allowContentOf: '$block',
+            allowAttributes: ['class', 'id','type','href']
         });
     };
 

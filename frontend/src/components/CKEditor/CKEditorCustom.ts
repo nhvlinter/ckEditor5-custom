@@ -47,6 +47,9 @@ import TextAreaConversionPlugin from './TextAreaConversionPlugin';
 import ATagConversionPlugin from './ATagConversionPlugin';
 import BtnConversionPlugin from './BtnConversionPlugin';
 import H_P_attrConversionPlugin from './H_P_attrConversionPlugin';
+import SectionConversionPlugin from './SectionConversionPlugin';
+import PConverstionPlugin from './PConverstionPlugin';
+import H3ConversionPlugin from './H3ConversionPlugin'
 
 export default class CKEditorCustom extends InlineEditorBase { }
 CKEditorCustom.builtinPlugins = [
@@ -93,7 +96,8 @@ CKEditorCustom.builtinPlugins = [
     TextAreaConversionPlugin,
     ATagConversionPlugin,
     BtnConversionPlugin,
-    H_P_attrConversionPlugin,
+    SectionConversionPlugin,
+    PConverstionPlugin,
 ];
 
 // Editor configuration.
