@@ -10,7 +10,7 @@ import { Usb, Apartment, SettingsInputComponent, Settings, Notifications, Chrome
 import PersonAddDisabledIcon from '@material-ui/icons/PersonAddDisabled';
 import { Link } from '../router/Links';
 
-const styles = require("./Sider.module.scss");
+const styles = require("./SiderLeft.module.scss");
 import classNames from 'classnames';
 import { makeStyles, Theme, createStyles, useTheme, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -128,7 +128,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 
-export const SiderMenu: FC<{ collapsed: boolean }> = observer(({ collapsed }) => {
+export const SiderMenuLeft: FC<{ collapsed: boolean }> = observer(({ collapsed }) => {
 	const [drawerWidth, setDrawerWidth] = React.useState(240);
 	const classes = useStyles(drawerWidth);
 	const theme = useTheme();
@@ -176,6 +176,7 @@ export const SiderMenu: FC<{ collapsed: boolean }> = observer(({ collapsed }) =>
 					<Tab label="Overview" classes={{ root: classes.tab }}>
 					</Tab>
 				</Tabs>
+				<Divider />
 				<TextField id="outlined-basic" placeholder="Search components" variant="outlined" />
 				<TreeView
 					className={classes.root}

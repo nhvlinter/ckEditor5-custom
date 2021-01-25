@@ -1,7 +1,8 @@
 import React, { FC, CSSProperties } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { SiderMenuWrapper } from '../components/SiderMenu';
+import { SiderMenuWrapperLeft } from '../components/SiderMenuLeft';
+import { SiderMenuWrapperRight } from '../components/SiderMenuRight';
 import styles from './BasicLayout.module.scss';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { autorun } from 'mobx';
@@ -39,10 +40,11 @@ export const BasicLayout: FC = observer(({ children }) => {
     return (
         <MuiThemeProvider theme={theme}>
             <div className={styles.root} style={matches ? { overflowX: "scroll", overflowY: "hidden" } : { overflowX: "hidden", overflowY: "hidden" }}>
-                <SiderMenuWrapper />
+                <SiderMenuWrapperLeft />
                 <main className={styles.content}>
                     {children}
                 </main>
+                <SiderMenuWrapperRight />
             </div>
         </MuiThemeProvider>
     )
