@@ -1,7 +1,7 @@
 import React, { CSSProperties, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { ProfileSiderMenu, SiderMenu } from './SiderMenu';
+import {SiderMenuRight } from './SiderMenuRight';
 
 import { useStore } from '../../stores';
 
@@ -10,7 +10,7 @@ const drawerStyle: CSSProperties = {
     height: '100vh',
 }
 
-export const SiderMenuWrapper = observer(() => {
+export const SiderMenuWrapperRight = observer(() => {
     const {sLeftNav} = useStore();
-    return (<SiderMenu collapsed={sLeftNav.collapsed} />)
+    return (<SiderMenuRight collapsed={sLeftNav.collapsed} />)
 });
