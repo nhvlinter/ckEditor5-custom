@@ -50,6 +50,7 @@ import H_P_attrConversionPlugin from './H_P_attrConversionPlugin';
 import SectionConversionPlugin from './SectionConversionPlugin';
 import PConverstionPlugin from './PConverstionPlugin';
 import H3ConversionPlugin from './H3ConversionPlugin'
+import H1ConversionPlugin from './H1ConversionPlugin'
 
 export default class CKEditorCustom extends InlineEditorBase { }
 CKEditorCustom.builtinPlugins = [
@@ -98,6 +99,8 @@ CKEditorCustom.builtinPlugins = [
     BtnConversionPlugin,
     SectionConversionPlugin,
     PConverstionPlugin,
+    H_P_attrConversionPlugin,
+    H1ConversionPlugin
 ];
 
 // Editor configuration.

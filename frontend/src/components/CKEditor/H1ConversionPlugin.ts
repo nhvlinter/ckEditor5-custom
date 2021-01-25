@@ -1,29 +1,30 @@
-export default function PConverstionPlugin(editor) {
+export default function H1ConversionPlugin(editor) {
     // Allow <p> elements in the model.
-    editor.model.schema.register( 'p', {
+    editor.model.schema.register( 'h1', {
         allowWhere: '$block',
-        allowContentOf: '$root'  
+        allowContentOf: '$root',
     } );
+
 
     // Allow <p> elements in the model to have all attributes.
     editor.model.schema.addAttributeCheck( context => {
-        if ( context.endsWith( 'p' ) ) {
+        if ( context.endsWith( 'h1' ) ) {
             return true;
         }
     } );
 
     // The view-to-model converter converting a view <p> with all its attributes to the model.
     editor.conversion.for( 'upcast' ).elementToElement( {
-        view: 'p',
+        view: 'h1',
         model: ( viewElement, { writer: modelWriter } ) => {
-            return modelWriter.createElement( 'p', viewElement.getAttributes() );
+            return modelWriter.createElement( 'h1', viewElement.getAttributes() );
         }
     } );
 
     // The model-to-view converter for the <p> element (attributes are converted separately).
     editor.conversion.for( 'downcast' ).elementToElement( {
-        model: 'p',
-        view: 'p'
+        model: 'h1',
+        view: 'h1'
     } );
 
     // The model-to-view converter for <p> attributes.
@@ -31,7 +32,7 @@ export default function PConverstionPlugin(editor) {
     editor.conversion.for( 'downcast' ).add( dispatcher => {
         dispatcher.on( 'attribute', ( evt, data, conversionApi ) => {
             // Convert <p> attributes only.
-            if ( data.item.name != 'p' ) {
+            if ( data.item.name != 'h1' ) {
                 return;
             }
 

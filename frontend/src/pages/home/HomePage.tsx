@@ -21,6 +21,8 @@ import BtnConversionPlugin from '../../components/CKEditor/BtnConversionPlugin';
 import SectionConversionPlugin from '../../components/CKEditor/SectionConversionPlugin';
 import PConverstionPlugin from '../../components/CKEditor/PConverstionPlugin';
 import H3ConversionPlugin from '../../components/CKEditor/H3ConversionPlugin';
+import H1ConversionPlugin from '../../components/CKEditor/H1ConversionPlugin';
+import H_P_attrConversionPlugin from '../../components/CKEditor/H_P_attrConversionPlugin';
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 import { makeStyles } from '@material-ui/core/styles';
@@ -32,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
             margin: theme.spacing(2),
         },
     },
-    
+
 }));
 
 export const HomePage: FC<{}> = observer(({ }) => {
@@ -103,23 +105,25 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     extraPlugins: [DIVConversionPlugin, LabelConversionPlugin, SpanConversionPlugin,
                         AnchorConversionPlugin, ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
                         UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
-                        BtnConversionPlugin, SectionConversionPlugin, PConverstionPlugin]
+                        BtnConversionPlugin, SectionConversionPlugin, PConverstionPlugin, H_P_attrConversionPlugin,
+                        H1ConversionPlugin]
                 }}
+                
                 data={sCKEditor.data}
                 onReady={editor => {
-                    // You can store the "editor" and use when it is needed.
-                    console.log('Editor is ready to use!', editor);
-                }}
+                // You can store the "editor" and use when it is needed.
+                console.log('Editor is ready to use!', editor);
+            }}
                 onChange={(event, editor) => {
-                    const data = editor.getData();
-                    sCKEditor.ckeditor.set_content(data);
-                }}
+                const data = editor.getData();
+                sCKEditor.ckeditor.set_content(data);
+            }}
                 onBlur={(event, editor) => {
-                    console.log('Blur.', editor);
-                }}
+                console.log('Blur.', editor);
+            }}
                 onFocus={(event, editor) => {
-                    console.log('Focus.', editor);
-                }}
+                console.log('Focus.', editor);
+            }}
             />
         </div>
         <div className={classes.btn}>
