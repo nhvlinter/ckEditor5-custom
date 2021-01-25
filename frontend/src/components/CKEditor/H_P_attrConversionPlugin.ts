@@ -1,9 +1,8 @@
 export default function H_P_attrConversionPlugin(editor) {
-    this.editor = editor;
+    // this.editor = editor;
     this.afterInit = function () {
         let batch = {
-            paragraph: "p", heading1: "h1", heading2: "h2", heading3: "h3",
-            heading4: "h4", heading5: "h5", heading6: "h6", label: "label"
+            paragraph: "p", heading1: "h1", label: "label"
         };
         Object.keys(batch).forEach(function (modelName) {
             let viewName = batch[modelName];
@@ -19,17 +18,17 @@ let _convertersApi = {
             console.log("_convertersApi._batch()", arguments)
         }
 
-        editor.model.schema.extend(modelName, {allowAttributes: modelName + 'Class'});
+        editor.model.schema.extend(modelName, { allowAttributes: modelName + 'Class' });
 
 
         // //TODO this is the original
         // // Tell the editor that the model "linkTarget" attribute converts into <a target="..."></a>
         editor.conversion.for('downcast').attributeToElement({
             model: modelName,
-            view: (attributeValue, {writer}) => {
+            view: (attributeValue, { writer }) => {
                 const linkElement = writer.createAttributeElement(viewName, {
                     "class": attributeValue
-                }, {priority: 0});
+                }, { priority: 0 });
                 if (debug) {
                     console.log({
                         attributeValue: attributeValue, writer: writer, linkElement: linkElement
