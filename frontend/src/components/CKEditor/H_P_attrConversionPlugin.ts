@@ -1,8 +1,9 @@
 export default function H_P_attrConversionPlugin(editor) {
-    // this.editor = editor;
+    this.editor = editor;
     this.afterInit = function () {
         let batch = {
-            paragraph: "p", heading1: "h1", label: "label"
+            paragraph: "p", heading1: "h1", heading2: "h2", heading3: "h3",
+            heading4: "h4", heading5: "h5", heading6: "h6", label: "label"
         };
         Object.keys(batch).forEach(function (modelName) {
             let viewName = batch[modelName];
@@ -18,17 +19,17 @@ let _convertersApi = {
             console.log("_convertersApi._batch()", arguments)
         }
 
-        editor.model.schema.extend(modelName, { allowAttributes: modelName + 'Class' });
+        editor.model.schema.extend(modelName, {allowAttributes: modelName + 'Class'});
 
 
         // //TODO this is the original
         // // Tell the editor that the model "linkTarget" attribute converts into <a target="..."></a>
         editor.conversion.for('downcast').attributeToElement({
             model: modelName,
-            view: (attributeValue, { writer }) => {
+            view: (attributeValue, {writer}) => {
                 const linkElement = writer.createAttributeElement(viewName, {
                     "class": attributeValue
-                }, { priority: 0 });
+                }, {priority: 0});
                 if (debug) {
                     console.log({
                         attributeValue: attributeValue, writer: writer, linkElement: linkElement
@@ -72,30 +73,30 @@ let _convertersApi = {
 
         // The model-to-view converter for <div> attributes.
         // Note that a lower-level, event-based API is used here.
-        // editor.conversion.for('downcast').add(dispatcher => {
-        //     dispatcher.on('attribute', (evt, data, conversionApi) => {
-        //         if (debug) {
-        //             console.log({
-        //                 evt: evt, data: data, conversionApi: conversionApi
-        //             })
-        //         }
-        //         // Convert <div> attributes only.
-        //         if (data.item.name !== modelName) {
-        //             return;
-        //         }
-        //
-        //         const viewWriter = conversionApi.writer;
-        //         const viewDiv = conversionApi.mapper.toViewElement(data.item);
-        //
-        //         // In the model-to-view conversion we convert changes.
-        //         // An attribute can be added or removed or changed.
-        //         // The below code handles all 3 cases.
-        //         if (data.attributeNewValue) {
-        //             viewWriter.setAttribute(data.attributeKey, data.attributeNewValue, viewDiv);
-        //         } else {
-        //             viewWriter.removeAttribute(data.attributeKey, viewDiv);
-        //         }
-        //     });
-        // });
+        editor.conversion.for('downcast').add(dispatcher => {
+            dispatcher.on('attribute', (evt, data, conversionApi) => {
+                if (debug) {
+                    console.log({
+                        evt: evt, data: data, conversionApi: conversionApi
+                    })
+                }
+                // Convert <div> attributes only.
+                if (data.item.name !== modelName) {
+                    return;
+                }
+        
+                const viewWriter = conversionApi.writer;
+                const viewDiv = conversionApi.mapper.toViewElement(data.item);
+        
+                // In the model-to-view conversion we convert changes.
+                // An attribute can be added or removed or changed.
+                // The below code handles all 3 cases.
+                if (data.attributeNewValue) {
+                    viewWriter.setAttribute(data.attributeKey, data.attributeNewValue, viewDiv);
+                } else {
+                    viewWriter.removeAttribute(data.attributeKey, viewDiv);
+                }
+            });
+        });
     }
 };

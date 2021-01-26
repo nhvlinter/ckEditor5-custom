@@ -51,6 +51,9 @@ import SectionConversionPlugin from './SectionConversionPlugin';
 import PConverstionPlugin from './PConverstionPlugin';
 import H3ConversionPlugin from './H3ConversionPlugin'
 import H1ConversionPlugin from './H1ConversionPlugin'
+import H2ConversionPlugin from './H2ConversionPlugin'
+import H4ConversionPlugin from './H4ConversionPlugin'
+import H5ConversionPlugin from './H5ConversionPlugin'
 
 export default class CKEditorCustom extends InlineEditorBase { }
 CKEditorCustom.builtinPlugins = [
@@ -88,7 +91,7 @@ CKEditorCustom.builtinPlugins = [
     DIVConversionPlugin,
     LabelConversionPlugin,
     SpanConversionPlugin,
-    AnchorConversionPlugin,
+    // AnchorConversionPlugin,
     ImageConversionPlugin,
     IconConversionPlugin,
     FormConversionPlugin,
@@ -98,9 +101,13 @@ CKEditorCustom.builtinPlugins = [
     ATagConversionPlugin,
     BtnConversionPlugin,
     SectionConversionPlugin,
+    H1ConversionPlugin,
+    H2ConversionPlugin,
+    H3ConversionPlugin,
+    H4ConversionPlugin,
+    H5ConversionPlugin,
     PConverstionPlugin,
     H_P_attrConversionPlugin,
-    H1ConversionPlugin
 ];
 
 // Editor configuration.
@@ -151,5 +158,5 @@ CKEditorCustom.defaultConfig = {
         ]
     },
     // This value must be kept in sync with the language defined in webpack.config.js.
-    language: 'en',
+    language: 'en'
 };
