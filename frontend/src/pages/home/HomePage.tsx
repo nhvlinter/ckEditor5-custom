@@ -22,6 +22,9 @@ import SectionConversionPlugin from '../../components/CKEditor/SectionConversion
 import PConverstionPlugin from '../../components/CKEditor/PConverstionPlugin';
 import H3ConversionPlugin from '../../components/CKEditor/H3ConversionPlugin';
 import H1ConversionPlugin from '../../components/CKEditor/H1ConversionPlugin';
+import H2ConversionPlugin from '../../components/CKEditor/H2ConversionPlugin';
+import H4ConversionPlugin from '../../components/CKEditor/H4ConversionPlugin';
+import H5ConversionPlugin from '../../components/CKEditor/H5ConversionPlugin';
 import H_P_attrConversionPlugin from '../../components/CKEditor/H_P_attrConversionPlugin';
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
@@ -102,28 +105,48 @@ export const HomePage: FC<{}> = observer(({ }) => {
             <CKEditor
                 editor={InlineEditor}
                 config={{
-                    extraPlugins: [DIVConversionPlugin, LabelConversionPlugin, SpanConversionPlugin,
-                        AnchorConversionPlugin, ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
+                    extraPlugins: [DIVConversionPlugin, SpanConversionPlugin,
+                        // AnchorConversionPlugin, 
+                        ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
                         UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
-                        BtnConversionPlugin, SectionConversionPlugin, PConverstionPlugin, H_P_attrConversionPlugin,
-                        H1ConversionPlugin]
+                        BtnConversionPlugin, SectionConversionPlugin,
+                        H_P_attrConversionPlugin,
+                        LabelConversionPlugin,
+                        H1ConversionPlugin,
+                        H2ConversionPlugin,
+                        H3ConversionPlugin,
+                        H4ConversionPlugin,
+                        H5ConversionPlugin,
+                        PConverstionPlugin,
+                    ],
+                    heading: {
+                        options: [
+                            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                            { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                            { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                            { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                            { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+                            { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+                            { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+                        ]
+                    }
                 }}
-                
+
                 data={sCKEditor.data}
                 onReady={editor => {
-                // You can store the "editor" and use when it is needed.
-                console.log('Editor is ready to use!', editor);
-            }}
+                    // You can store the "editor" and use when it is needed.
+                    console.log('Editor is ready to use!', editor);
+                }}
                 onChange={(event, editor) => {
-                const data = editor.getData();
-                sCKEditor.ckeditor.set_content(data);
-            }}
+                    const data = editor.getData();
+                    sCKEditor.ckeditor.set_content(data);
+                }}
                 onBlur={(event, editor) => {
-                console.log('Blur.', editor);
-            }}
+                    console.log('Blur.', editor);
+                }}
                 onFocus={(event, editor) => {
-                console.log('Focus.', editor);
-            }}
+                    console.log('Focus.', editor);
+                }}
             />
         </div>
         <div className={classes.btn}>
