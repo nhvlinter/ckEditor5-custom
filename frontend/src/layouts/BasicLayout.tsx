@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 
 import { SiderMenuWrapperLeft } from '../components/SiderMenuLeft';
 import { SiderMenuWrapperRight } from '../components/SiderMenuRight';
+import { SiderMenuWrapperBottom } from '../components/SiderMenuBottom';
 import styles from './BasicLayout.module.scss';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { autorun } from 'mobx';
@@ -44,8 +45,9 @@ export const BasicLayout: FC = observer(({ children }) => {
                 <main className={styles.content}>
                     {children}
                 </main>
-                <SiderMenuWrapperRight />
+                {/* <SiderMenuWrapperRight /> */}
             </div>
+            <SiderMenuWrapperBottom />
         </MuiThemeProvider>
     )
 });

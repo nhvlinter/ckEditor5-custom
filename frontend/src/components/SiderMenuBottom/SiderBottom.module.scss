@@ -1,0 +1,36 @@
+@import '../../css/helpers/variables';
+
+.drawer{
+    width: $sider-width;
+    flex-shrink: 0;
+    white-space: nowrap;
+    z-index: $sider-zIndex;
+}
+
+.drawerOpen {
+    width: $sider-width;
+    transition-property: width;
+    transition-duration: 0s;
+    transition-timing-function: ease;
+    // transition-property: width !important;
+    // transition-duration: 225ms !important;
+    // transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1) !important;
+}
+.drawerClose {
+    transition-property: width;
+    transition-duration: 0s;
+    transition-timing-function: ease;
+    overflow: hidden;
+    // transition-property: width !important;
+    // transition-duration: 225ms !important;
+    // transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1) !important;
+    // overflow-x: hidden !important;
+    width: 0px ;
+}
+
+.toolbarIcon {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: '0 8px';
+}
