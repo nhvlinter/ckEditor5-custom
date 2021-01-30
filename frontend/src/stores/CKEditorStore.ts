@@ -1,13 +1,16 @@
 import { observable, action, computed } from "mobx";
 import { BaseStore } from "./BaseStore";
+import { TreeViewDataStore } from "./TreeViewDataStore";
 import { aFetch } from "../services/api/fetch";
 import { CKEditor } from "../models/CKEditor";
 export class CKEditorStore {
     @observable data: string = "";
     @observable dataChanges: string = "";
     @observable ckeditor: CKEditor;
+    @observable treeViewDataStore: TreeViewDataStore = new TreeViewDataStore();
     constructor(private store: BaseStore) {
         this.ckeditor = new CKEditor();
+        this.treeViewDataStore = new TreeViewDataStore();
     }
     @action set_data = (v: string) => {
         const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;

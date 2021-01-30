@@ -14,7 +14,7 @@ export default function H_P_attrConversionPlugin(editor) {
 
 let _convertersApi = {
     _batch: function (editor, viewName, modelName) {
-        let debug = true;
+        let debug = false;
         if (debug) {
             console.log("_convertersApi._batch()", arguments)
         }
