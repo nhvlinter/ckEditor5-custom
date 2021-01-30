@@ -47,7 +47,7 @@ export const BasicLayout: FC = observer(({ children }) => {
                 </main>
                 {/* <SiderMenuWrapperRight /> */}
             </div>
-            <SiderMenuWrapperBottom />
+            {/* <SiderMenuWrapperBottom /> */}
         </MuiThemeProvider>
     )
 });

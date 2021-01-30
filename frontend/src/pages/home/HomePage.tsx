@@ -46,6 +46,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [action, setAction] = useState("");
     const [openDialogAction, setOpenDialogAction] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
+    const [disabled, setDisabled] = React.useState(true);
     // const { enqueueSnackbar } = useSnackbar();
     useEffect(() => {
         sCKEditor.init();
@@ -98,10 +99,22 @@ export const HomePage: FC<{}> = observer(({ }) => {
         })
     }, [sCKEditor]);
 
+    const edit = useCallback(() => {
+        setDisabled(false);
+    },[disabled])
 
     return (<BasicLayout>
         <div>
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
+            <div className={classes.btn}>
+                <Button variant="contained" onClick={showDialogReset}>Reset</Button>
+                <Button variant="contained" color="primary" onClick={edit} >
+                    Edit
+                </Button>
+                <Button variant="contained" color="primary" onClick={showDialogSave}>
+                    Save
+                </Button>
+            </div>
             <CKEditor
                 editor={InlineEditor}
                 config={{
@@ -147,13 +160,8 @@ export const HomePage: FC<{}> = observer(({ }) => {
                 onFocus={(event, editor) => {
                     console.log('Focus.', editor);
                 }}
+                disabled={disabled}
             />
-        </div>
-        <div className={classes.btn}>
-            <Button variant="contained" onClick={showDialogReset}>Reset</Button>
-            <Button variant="contained" color="primary" onClick={showDialogSave}>
-                Save
-            </Button>
         </div>
         <Dialog
             open={openDialogAction}

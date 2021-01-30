@@ -1,15 +1,11 @@
 import React, { FC, CSSProperties, useMemo, useEffect, useCallback } from 'react';
 import { observer, useComputed } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
-
 import { useStore } from '../../stores';
-
 import { Drawer, AppBar, Button, Toolbar, IconButton, CssBaseline, ListItem, ListItemText, ListItemIcon, Divider, MenuList, MenuItem, List, Collapse, useMediaQuery } from '@material-ui/core';
-
 import { Usb, Apartment, SettingsInputComponent, Settings, Notifications, ChromeReaderMode, PermDataSetting, Category, HourglassFull, Group, FastRewind, FastForward, Adb, Announcement, Contacts, Home, Receipt, Event, ExpandLess, ExpandMore, LibraryBooks, Description, VpnKey, PermIdentity, School, HomeWork, Accessibility, MusicNote } from '@material-ui/icons';
 import PersonAddDisabledIcon from '@material-ui/icons/PersonAddDisabled';
 import { Link } from '../router/Links';
-
 const styles = require("./SiderLeft.module.scss");
 import classNames from 'classnames';
 import { makeStyles, Theme, createStyles, useTheme, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
@@ -28,8 +24,10 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import MenuIcon from '@material-ui/icons/Menu';
 import { cpus } from 'os';
 import clsx from 'clsx';
+import { Overview } from './Overview';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
+const drawerHeight = 350;
 
 const useStyles = makeStyles((theme: Theme) =>
 	createStyles({
@@ -105,15 +103,42 @@ const useStyles = makeStyles((theme: Theme) =>
 			width: drawerWidth,
 			flexShrink: 0,
 			whiteSpace: 'nowrap',
-		  },
+			height: drawerHeight,
+		},
 		drawerOpen: {
 			width: drawerWidth,
+			height: drawerHeight,
 			transition: theme.transitions.create('width', {
 				easing: theme.transitions.easing.sharp,
 				duration: theme.transitions.duration.enteringScreen,
 			}),
 		},
 		drawerClose: {
+			transition: theme.transitions.create('width', {
+				easing: theme.transitions.easing.sharp,
+				duration: theme.transitions.duration.leavingScreen,
+			}),
+			overflowX: 'hidden',
+			width: theme.spacing(7) + 1,
+			[theme.breakpoints.up('sm')]: {
+				width: theme.spacing(0) + 1,
+			},
+		},
+		drawerOverview: {
+			width: drawerWidth,
+			flexShrink: 0,
+			whiteSpace: 'nowrap',
+			height: `calc(100% - ${drawerHeight}px)`,
+		},
+		drawerOpenOverview: {
+			width: drawerWidth,
+			transition: theme.transitions.create('width', {
+				easing: theme.transitions.easing.sharp,
+				duration: theme.transitions.duration.enteringScreen,
+			}),
+			height: `calc(100% - ${drawerHeight}px)`,
+		},
+		drawerCloseOverview: {
 			transition: theme.transitions.create('width', {
 				easing: theme.transitions.easing.sharp,
 				duration: theme.transitions.duration.leavingScreen,
@@ -134,9 +159,14 @@ export const SiderMenuLeft: FC<{ collapsed: boolean }> = observer(({ collapsed }
 	const theme = useTheme();
 	const [valueTab, setValueTab] = React.useState(0);
 	const [open, setOpen] = React.useState(true);
+	const { sTreeViewData } = useStore();
 	const handleTabChange = (event, newValue) => {
 		setValueTab(newValue);
 	};
+
+	useEffect(() => {
+        sTreeViewData.init();
+    });
 
 	const handleDrawerClose = () => {
 		setOpen(false);
@@ -144,55 +174,84 @@ export const SiderMenuLeft: FC<{ collapsed: boolean }> = observer(({ collapsed }
 
 	const handleDrawerOpen = () => {
 		setOpen(true);
-	  };
+	};
 
 	return (
 		<ThemeProvider >
-			<Drawer
-				variant="permanent"
-				className={clsx(classes.drawer, {
-					[classes.drawerOpen]: open,
-					[classes.drawerClose]: !open,
-				})}
-				classes={{
-					paper: clsx({
+			<div>
+				<Drawer
+					variant="permanent"
+					className={clsx(classes.drawer, {
 						[classes.drawerOpen]: open,
 						[classes.drawerClose]: !open,
-					}),
-				}}
-				// open={false}
-				transitionDuration={2000}>
-				<Tabs
-					classes={{ root: classes.tabRoots }}
-					value={valueTab}
-					onChange={handleTabChange}
-					indicatorColor="primary"
-					textColor="primary"
-				>
-					<Tab label="Studio" classes={{ root: classes.tab }} >
-					</Tab>
-					<Tab label="Outline" classes={{ root: classes.tab }}>
-					</Tab>
-					<Tab label="Overview" classes={{ root: classes.tab }}>
-					</Tab>
-				</Tabs>
-				<Divider />
-				<TextField id="outlined-basic" placeholder="Search components" variant="outlined" />
-				<TreeView
-					className={classes.root}
-					defaultCollapseIcon={<ExpandMoreIcon />}
-					defaultExpandIcon={<ChevronRightIcon />}
-				>
-					<TreeItem nodeId="1" label="UI">
-						<TreeItem nodeId="2" label="Articles" />
-						<TreeItem nodeId="3" label="Features" />
-						<TreeItem nodeId="4" label="Footers" />
-					</TreeItem>
-				</TreeView>
-			</Drawer>
+					})}
+					classes={{
+						paper: clsx({
+							[classes.drawerOpen]: open,
+							[classes.drawerClose]: !open,
+						}),
+					}}
+					// open={false}
+					transitionDuration={2000}>
+					<Tabs
+						classes={{ root: classes.tabRoots }}
+						value={valueTab}
+						onChange={handleTabChange}
+						indicatorColor="primary"
+						textColor="primary"
+					>
+						<Tab label="Studio" classes={{ root: classes.tab }} >
+						</Tab>
+						<Tab label="Outline" classes={{ root: classes.tab }}>
+						</Tab>
+					</Tabs>
+					<Divider />
+					<TextField id="outlined-basic" placeholder="Search components" variant="outlined" />
+					<TreeView
+						className={classes.root}
+						defaultCollapseIcon={<ExpandMoreIcon />}
+						defaultExpandIcon={<ChevronRightIcon />}
+					>
+						<TreeItem nodeId="1" label="UI">
+							<TreeItem nodeId="2" label="Articles" />
+							<TreeItem nodeId="3" label="Features" />
+							<TreeItem nodeId="4" label="Footers" />
+						</TreeItem>
+					</TreeView>
+				</Drawer>
+				<Drawer
+					variant="permanent"
+					className={clsx(classes.drawerOverview, {
+						[classes.drawerOpenOverview]: open,
+						[classes.drawerCloseOverview]: !open,
+					})}
+					classes={{
+						paper: clsx({
+							[classes.drawerOpenOverview]: open,
+							[classes.drawerCloseOverview]: !open,
+						}),
+					}}
+					// open={false}
+					anchor="bottom"
+					transitionDuration={2000}>
+					<Divider />
+					<Tabs
+						classes={{ root: classes.tabRoots }}
+						value={valueTab}
+						onChange={handleTabChange}
+						indicatorColor="primary"
+						textColor="primary"
+					>
+						<Tab label="Overview" classes={{ root: classes.tab }}>
+						</Tab>
+					</Tabs>
+					<Divider />
+					<Overview item={sTreeViewData.data} />
+				</Drawer>
+			</div>
 			<div >
 				<IconButton onClick={open ? handleDrawerClose : handleDrawerOpen}>
-					{open ? < ChevronLeftIcon/> : <ChevronRightIcon />}
+					{open ? < ChevronLeftIcon /> : <ChevronRightIcon />}
 				</IconButton>
 			</div>
 		</ThemeProvider>)
