@@ -5,7 +5,7 @@ import { TreeView, TreeItem } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { TreeViewData } from '../../models/TreeViewData';
-import { Typography, makeStyles, createStyles, Theme, Checkbox, Box, Dialog, Button } from "@material-ui/core";
+import { Typography, makeStyles, createStyles, Theme, Checkbox, Box, Dialog, Button, Grid, Link, Paper, TextField, Tabs, Tab } from "@material-ui/core";
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
@@ -13,6 +13,11 @@ import BorderColorIcon from '@material-ui/icons/BorderColor';
 import { withStyles } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import AssistantIcon from '@material-ui/icons/Assistant';
+import SettingsIcon from '@material-ui/icons/Settings';
+import CodeIcon from '@material-ui/icons/Code';
+import AddIcon from '@material-ui/icons/Add';
+import PropTypes from 'prop-types';
 
 const useTreeItemStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -67,6 +72,24 @@ const useTreeItemStyles = makeStyles((theme: Theme) =>
         userlabelItem: {
             width: "300px",
             display: 'inline-table'
+        },
+        paperIcon: {
+            padding: theme.spacing(1),
+            textAlign: 'center',
+            color: theme.palette.text.secondary,
+        },
+        paperContent: {
+            width: theme.spacing(100),
+            height: theme.spacing(50),
+            margin: theme.spacing(2)
+        },
+        button: {
+            margin: theme.spacing(2),
+        },
+        addIcon: {
+            border: "1px solid black",
+            marginLeft: "10px",
+            backgroundColor: "blue"
         }
     }),
 );
@@ -82,6 +105,7 @@ const styles = (theme) => ({
         top: theme.spacing(1),
         color: theme.palette.grey[500],
     },
+
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -116,6 +140,7 @@ export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
     const classes = useTreeItemStyles();
     const [open, setOpen] = React.useState(false);
     const [tag, setTag] = useState("");
+    const [valueTag, setValueTag] = useState(0);
 
     const handleClickOpen = (label) => {
         setTag(label);
@@ -123,6 +148,10 @@ export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
     };
     const handleClose = () => {
         setOpen(false);
+    };
+
+    const handleChange = (event, newValue) => {
+        setValueTag(newValue);
     };
 
     return (
@@ -143,7 +172,7 @@ export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
                     label={<div className={classes.labelRoot} >
                         {item.label}
                         <Box ml={2} />
-                        <BorderColorIcon 
+                        <BorderColorIcon
                             onClick={() => handleClickOpen(item.label)}
                         />
                     </div>}
@@ -158,27 +187,50 @@ export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
                         </>)}
                 </TreeItem>
             </TreeView>
-            <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
+            <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='lg'>
                 <DialogTitle id="customized-dialog-title" onClose={handleClose}>
                     {"<" + tag.toUpperCase() + "/>"}
                 </DialogTitle>
                 <DialogContent dividers>
-                    <Typography gutterBottom>
-                        Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis
-                        in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
-                    </Typography>
-                    <Typography gutterBottom>
-                        Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis
-                        lacus vel augue laoreet rutrum faucibus dolor auctor.
-                    </Typography>
-                    <Typography gutterBottom>
-                        Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel
-                        scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus
-                        auctor fringilla.
-                    </Typography>
+                    <Grid container spacing={3}>
+                        <Tabs
+                            value={valueTag}
+                            onChange={handleChange}
+                            variant="fullWidth"
+                            indicatorColor="secondary"
+                            textColor="secondary"
+                            aria-label="simple tabs example">
+                            <Tab
+                                icon={<AssistantIcon
+                                    fontSize='large'
+                                    color='error'
+                                />}
+                                aria-label="add-class"
+                                value={0}
+                            />
+                            <Tab
+                                icon={<SettingsIcon fontSize='large'
+                                    color='error' />}
+                                aria-label="add-attributes"
+                                value={1}
+                            />
+                            <Tab
+                                icon={<CodeIcon fontSize='large'
+                                    color='error' />}
+                                aria-label="code-html"
+                                value={2}
+                            />
+                        </Tabs>
+                    </Grid>
+                    {valueTag == 0 ? <TabPanelAddClasses ></TabPanelAddClasses>
+                        : valueTag == 1 ? <TabPanelAddAttributes></TabPanelAddAttributes>
+                            : valueTag == 2 ? <TabPanelHTMLCode></TabPanelHTMLCode>
+                                : <></>
+                    }
+
                 </DialogContent>
                 <DialogActions>
-                    <Button autoFocus onClick={handleClose} color="primary">
+                    <Button variant="contained" autoFocus onClick={handleClose} color="primary">
                         Apply
                     </Button>
                 </DialogActions>
@@ -186,3 +238,63 @@ export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
         </>
     )
 });
+export const TabPanelAddClasses = observer(() => {
+    const classes = useTreeItemStyles();
+    return (
+        <Grid container spacing={3}>
+            <Paper variant="outlined" className={classes.paperContent}>
+                <Grid item xs >
+                    <Box component="div" p={1.5} ></Box>
+                    <Box ml={3} component="div" display="inline"></Box>
+                    <Box component="div" display="inline" p={2} ml={2} bgcolor="#f2f2f2">
+                        Classes:
+                        </Box>
+                    <TextField variant="outlined" label="name" style={{ width: "550px" }}>
+                    </TextField>
+                    <IconButton aria-label="add"
+                        className={classes.addIcon}
+                        color="primary" size="medium">
+                        <AddIcon fontSize="large" style={{color: "white"}} />
+                    </IconButton>
+                </Grid>
+            </Paper>
+        </Grid>
+    );
+});
+
+export const TabPanelAddAttributes = observer(() => {
+    const classes = useTreeItemStyles();
+    return (
+        <Grid container spacing={3}>
+            <Paper variant="outlined" className={classes.paperContent}>
+                <Grid item xs >
+                    <Box component="div" p={1.5} ></Box>
+                    <Box ml={3} component="div" display="inline"></Box>
+                    <Box component="div" display="inline" p={2} ml={2} bgcolor="#f2f2f2">
+                        Attributes:
+                        </Box>
+                    <TextField variant="outlined" label="name" style={{ width: "250px" }}>
+                    </TextField>
+                    <TextField variant="outlined" label="value" style={{ width: "250px" }}>
+                    </TextField>
+                    <IconButton aria-label="add"
+                        className={classes.addIcon}
+                        color="primary" size="medium">
+                        <AddIcon fontSize="large" style={{color: "white"}} />
+                    </IconButton>
+                </Grid>
+            </Paper>
+        </Grid>
+    );
+});
+
+export const TabPanelHTMLCode = observer(() => {
+    const classes = useTreeItemStyles();
+    return (
+        <Grid container spacing={3}>
+            <Paper variant="outlined" className={classes.paperContent} disabled>
+            </Paper>
+        </Grid>
+    );
+});
+

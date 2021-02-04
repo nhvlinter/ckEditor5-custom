@@ -39,6 +39,10 @@ const useStyles = makeStyles((theme) => ({
             margin: theme.spacing(2),
         },
     },
+    borderTag: {
+        borderColor: '#228B22',
+        borderStyle: 'solid'
+    }
 
 }));
 
@@ -49,6 +53,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [openDialogAction, setOpenDialogAction] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
     const [disabled, setDisabled] = React.useState(true);
+    const [mouseMove, setMouseMove] = React.useState(false);
     // const { enqueueSnackbar } = useSnackbar();
     useEffect(() => {
         sCKEditor.init();
@@ -109,18 +114,13 @@ export const HomePage: FC<{}> = observer(({ }) => {
         console.log("Hello World");
     }
 
-    function handledMouseOver() {
-        console.log("Mouse Over");
-    }
-
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
             return <node.name id={node.attribs.id} class={node.attribs.class} key={index}
                 onClick={handledOnclick}
-                onMouseOver={handledMouseOver}
+                // onMouseEnter={() => {node.attribs.class = node.attribs.class + " borderTag"}}
+                // onMouseLeave={() => setMouseMove(false)}
             >{processNodes(node.children, transform)}</node.name>
-            // node.onClick={handledOnclick}
-            // return convertNodeToElement(node, index, transform);
         }
     }
 
@@ -189,9 +189,9 @@ export const HomePage: FC<{}> = observer(({ }) => {
                 disabled={disabled}
             />
         </div>
-        <div>
+        {/* <div>
             {ReactHtmlParser(sCKEditor.data, options)}
-        </div>
+        </div> */}
         <Dialog
             open={openDialogAction}
             onClose={handledCloseDialogAction}
