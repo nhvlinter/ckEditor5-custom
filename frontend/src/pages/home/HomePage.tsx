@@ -29,14 +29,20 @@ import H_P_attrConversionPlugin from '../../components/CKEditor/H_P_attrConversi
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 import { makeStyles } from '@material-ui/core/styles';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@material-ui/core';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Switch, Box } from '@material-ui/core';
+import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
+import { renderToString } from 'react-dom/server'
 
 const useStyles = makeStyles((theme) => ({
     btn: {
         '& > *': {
-            margin: theme.spacing(2),
+            margin: theme.spacing(1),
         },
     },
+    borderTag: {
+        borderColor: '#228B22',
+        borderStyle: 'solid'
+    }
 
 }));
 
@@ -46,7 +52,8 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [action, setAction] = useState("");
     const [openDialogAction, setOpenDialogAction] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
-    const [disabled, setDisabled] = React.useState(true);
+    const [editMode, setEditMode] = React.useState(false);
+    const [mouseMove, setMouseMove] = React.useState(false);
     // const { enqueueSnackbar } = useSnackbar();
     useEffect(() => {
         sCKEditor.init();
@@ -87,34 +94,88 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const reset = useCallback(() => {
         sCKEditor.get().then(result => {
             if (result != null && result != "") {
-                window.location.href = "/";
+                sCKEditor.init();
+                setOpenDialogAction(false);
+                // window.location.href = "/";
             }
         })
     }, [sCKEditor]);
 
     const save = useCallback(() => {
-        console.log("Save ");
         sCKEditor.save().then(result => {
-            window.location.href = "/";
+            sCKEditor.init();
+            setOpenDialogAction(false);
+            // window.location.href = "/";
         })
     }, [sCKEditor]);
 
     const edit = useCallback(() => {
-        setDisabled(false);
-    },[disabled])
+        setEditMode(!editMode);
+    }, [editMode])
+
+    function handledOnclick() {
+        console.log("Hello World");
+    }
+
+    function transform(node, index) {
+        if (node.name != undefined && node.name != null) {
+            let styleTag = {};
+            if (node.attribs.style != undefined) {
+                let style = node.attribs.style;
+                let arrayTemp = style.split(",");
+                for (let i = 0; i < arrayTemp.length; i++) {
+                    let temp = arrayTemp[i].split(":");
+                    if (temp.length == 2) {
+                        let key = temp[0].trim();
+                        let value = temp[1].trim();
+                        styleTag[key] = value.replaceAll("'", "");
+                    }
+                }
+            }
+            return <node.name
+                {...node.attribs}
+                style={styleTag}
+                key={index}
+                onClick={handledOnclick}
+                onMouseEnter={() => console.log("Mouse Enter")}
+                onMouseLeave={() => console.log("Mouse Leave")}
+            >{processNodes(node.children, transform)}</node.name>
+        }
+    }
+
+    const options = {
+        decodeEntities: true,
+        transform
+    };
 
     return (<BasicLayout>
         <div>
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
             <div className={classes.btn}>
                 <Button variant="contained" onClick={showDialogReset}>Reset</Button>
-                <Button variant="contained" color="primary" onClick={edit} >
+                {/* <Button variant="contained" color="primary" onClick={edit} >
                     Edit
-                </Button>
+                </Button> */}
                 <Button variant="contained" color="primary" onClick={showDialogSave}>
                     Save
                 </Button>
+                <FormControlLabel
+                    style={{ textAlign: "right" }}
+                    control={
+                        <Switch
+                            checked={editMode}
+                            onChange={edit}
+                            name="edit"
+                            color="primary"
+
+                        />
+                    }
+                    labelPlacement="end"
+                    label="EDIT MODE"
+                />
             </div>
+        </div>
+        {editMode ?
             <CKEditor
                 editor={InlineEditor}
                 config={{
@@ -145,7 +206,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     }
                 }}
 
-                data={sCKEditor.data}
+                data={renderToString(ReactHtmlParser(sCKEditor.data, options))}
                 onReady={editor => {
                     // You can store the "editor" and use when it is needed.
                     console.log('Editor is ready to use!', editor);
@@ -160,9 +221,10 @@ export const HomePage: FC<{}> = observer(({ }) => {
                 onFocus={(event, editor) => {
                     console.log('Focus.', editor);
                 }}
-                disabled={disabled}
             />
-        </div>
+            : <div style={{ margin: '10px' }}>
+                {ReactHtmlParser(sCKEditor.data, options)}
+            </div>}
         <Dialog
             open={openDialogAction}
             onClose={handledCloseDialogAction}

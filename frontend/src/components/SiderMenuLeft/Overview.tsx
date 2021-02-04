@@ -5,7 +5,7 @@ import { TreeView, TreeItem } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import { TreeViewData } from '../../models/TreeViewData';
-import { Typography, makeStyles, createStyles, Theme, Checkbox, Box, Dialog, Button } from "@material-ui/core";
+import { Typography, makeStyles, createStyles, Theme, Checkbox, Chip, Box, Dialog, Button, Grid, Link, Paper, TextField, Tabs, Tab } from "@material-ui/core";
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
@@ -13,6 +13,16 @@ import BorderColorIcon from '@material-ui/icons/BorderColor';
 import { withStyles } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
+import AssistantIcon from '@material-ui/icons/Assistant';
+import SettingsIcon from '@material-ui/icons/Settings';
+import CodeIcon from '@material-ui/icons/Code';
+import AddIcon from '@material-ui/icons/Add';
+import PropTypes from 'prop-types';
+import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
+import { OverviewStore } from '../../models/OverviewStore';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import DoneIcon from '@material-ui/icons/Done';
+import { renderToString } from 'react-dom/server'
 
 const useTreeItemStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -67,7 +77,28 @@ const useTreeItemStyles = makeStyles((theme: Theme) =>
         userlabelItem: {
             width: "300px",
             display: 'inline-table'
-        }
+        },
+        paperIcon: {
+            padding: theme.spacing(1),
+            textAlign: 'center',
+            color: theme.palette.text.secondary,
+        },
+        paperContent: {
+            width: theme.spacing(100),
+            height: theme.spacing(50),
+            margin: theme.spacing(2)
+        },
+        button: {
+            margin: theme.spacing(2),
+        },
+        addIcon: {
+            border: "1px solid black",
+            marginLeft: "10px",
+            backgroundColor: "blue"
+        },
+        chip: {
+            margin: theme.spacing(0.5),
+        },
     }),
 );
 
@@ -82,6 +113,7 @@ const styles = (theme) => ({
         top: theme.spacing(1),
         color: theme.palette.grey[500],
     },
+
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -111,78 +143,367 @@ const DialogActions = withStyles((theme) => ({
     },
 }))(MuiDialogActions);
 
-export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
-    const { sTreeViewData } = useStore();
+export const Overview: FC<{ item: any }> = observer(({ item }) => {
+    const { sTreeViewData, sCKEditor, sOverview, routerStore } = useStore();
     const classes = useTreeItemStyles();
     const [open, setOpen] = React.useState(false);
     const [tag, setTag] = useState("");
+    const [valueTag, setValueTag] = useState(0);
+    const [nodeData, setNodeData] = useState(null);
 
-    const handleClickOpen = (label) => {
-        setTag(label);
+    const handleClickOpen = (nodeData) => {
+        sOverview.init();
+        if (nodeData != null) {
+            setNodeData(nodeData);
+        }
         setOpen(true);
     };
     const handleClose = () => {
         setOpen(false);
     };
 
+    const handleChange = (event, newValue) => {
+        setValueTag(newValue);
+    };
+
+    const updatedAttr2Server = () => {
+        if (nodeData != null) {
+            let dataHtml = ReactHtmlParser(sCKEditor.data, {
+                transform(node) {
+                    if (isEqualNode(node, nodeData)) {
+                        if (sOverview.classes.length > 0) {
+                            let classes = "";
+                            for (let i = 0; i < sOverview.classes.length; i++) {
+                                classes += sOverview.classes[i] + " ";
+                            }
+                            node.attribs.class = classes;
+                        }
+                        if (sOverview.attributes.length > 0) {
+                            for (let i = 0; i < sOverview.attributes.length; i++) {
+                                node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
+                            }
+                        }
+                    }
+                }
+            });
+            let dataSaved = renderToString(dataHtml);
+            sCKEditor.saveDataChanged(dataSaved);
+            setOpen(false);
+        }
+    }
+
+    function isEqualNode(oneNode, twoNode) {
+        let flag = true;
+        if (oneNode.children != undefined && twoNode.children == undefined) {
+            return false;
+        }
+        if (oneNode.children == undefined && twoNode.children != undefined) {
+            return false;
+        }
+        if (oneNode.children != undefined && twoNode.children != undefined) {
+            if (oneNode.children.length != twoNode.children.length) {
+                return false;
+            }
+        }
+        if (oneNode.name != twoNode.name) {
+            return false;
+        }
+        if (oneNode.attribs != undefined && twoNode.attribs == undefined) {
+            return false;
+        }
+        if (oneNode.attribs == undefined && twoNode.attribs != undefined) {
+            return false;
+        }
+        if (oneNode.attribs != undefined && twoNode.attribs != undefined) {
+            let oneAttr = Object.entries(oneNode.attribs);
+            let twoAttr = Object.entries(twoNode.attribs);
+            if (oneAttr.length != twoAttr.length) {
+                return false;
+            } else {
+                let count = 0;
+                for (let i = 0; i < oneAttr.length; i++) {
+                    for (let j = 0; j < twoAttr.length; j++) {
+                        if (oneAttr[i][0] == twoAttr[j][0] && oneAttr[i][1] == twoAttr[j][1]) {
+                            count++;
+                        }
+                    }
+                }
+                if (oneAttr.length != count) {
+                    return false;
+                }
+            }
+        }
+        if (oneNode.parent != undefined && twoNode.parent == undefined) {
+            return false;
+        }
+        if (oneNode.parent == undefined && twoNode.parent != undefined) {
+            return false;
+        }
+        // if(oneNode.parent != undefined && twoNode.parent != undefined) {
+        //     return isEqualNode(oneNode.parent, twoNode.parent);
+        // }
+        if (oneNode.prev != undefined && twoNode.prev == undefined) {
+            return false;
+        }
+        if (oneNode.prev == undefined && twoNode.prev != undefined) {
+            return false;
+        }
+        // if(oneNode.prev != undefined && twoNode.prev != undefined) {
+        //     return isEqualNode(oneNode.prev, twoNode.prev);
+        // }
+        if (oneNode.next != undefined && twoNode.next == undefined) {
+            return false;
+        }
+        if (oneNode.next == undefined && twoNode.next != undefined) {
+            return false;
+        }
+        // if(oneNode.next != undefined && twoNode.next != undefined) {
+        //     return isEqualNode(oneNode.next, twoNode.next);
+        // }
+        return true;
+    }
+
+    function transform(node, index) {
+        if (node.name != undefined && node.name != null) {
+            return (
+                <TreeView
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}
+                >
+                    <TreeItem
+                        classes={{
+                            root: classes.root,
+                            expanded: classes.expanded,
+                            selected: classes.selected,
+                            group: classes.group,
+                            label: classes.label,
+                        }}
+                        nodeId={index}
+                        label={<div className={classes.labelRoot} >
+                            {node.name}
+                            <Box ml={3} />
+                            <BorderColorIcon
+                                onClick={() => handleClickOpen(node)}
+                            />
+                        </div>}
+                    >
+                        {node.children.length != 1 && processNodes(node.children, transform)}
+                    </TreeItem>
+                </TreeView>
+            );
+        }
+    }
+
+    const options = {
+        decodeEntities: true,
+        transform
+    };
+
     return (
         <>
-            <TreeView
-                defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}
-            >
-                <TreeItem
-                    classes={{
-                        root: classes.root,
-                        expanded: classes.expanded,
-                        selected: classes.selected,
-                        group: classes.group,
-                        label: classes.label,
-                    }}
-                    nodeId={item.nodeId != null ? item.nodeId : "1"}
-                    label={<div className={classes.labelRoot} >
-                        {item.label}
-                        <Box ml={2} />
-                        <BorderColorIcon 
-                            onClick={() => handleClickOpen(item.label)}
-                        />
-                    </div>}
-                >
-                    {item.child != null && (
-                        <>
-                            {item.child.map(i => {
-                                return (<>
-                                    <Overview item={i}></Overview>
-                                </>)
-                            })}
-                        </>)}
-                </TreeItem>
-            </TreeView>
-            <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
-                <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-                    {"<" + tag.toUpperCase() + "/>"}
-                </DialogTitle>
-                <DialogContent dividers>
-                    <Typography gutterBottom>
-                        Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis
-                        in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
-                    </Typography>
-                    <Typography gutterBottom>
-                        Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis
-                        lacus vel augue laoreet rutrum faucibus dolor auctor.
-                    </Typography>
-                    <Typography gutterBottom>
-                        Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel
-                        scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus
-                        auctor fringilla.
-                    </Typography>
-                </DialogContent>
-                <DialogActions>
-                    <Button autoFocus onClick={handleClose} color="primary">
-                        Apply
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            {ReactHtmlParser(sCKEditor.data, options)}
+            {nodeData != null && (
+                <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='lg'>
+                    <DialogTitle id="customized-dialog-title" onClose={handleClose}>
+                        {"<" + nodeData.name.toUpperCase() + "/>"}
+                    </DialogTitle>
+                    <DialogContent dividers>
+                        <Grid container spacing={3}>
+                            <Tabs
+                                value={valueTag}
+                                onChange={handleChange}
+                                variant="fullWidth"
+                                indicatorColor="secondary"
+                                textColor="secondary"
+                                aria-label="simple tabs example">
+                                <Tab
+                                    icon={<AssistantIcon
+                                        fontSize='large'
+                                        color='error'
+                                    />}
+                                    aria-label="add-class"
+                                    value={0}
+                                />
+                                <Tab
+                                    icon={<SettingsIcon fontSize='large'
+                                        color='error' />}
+                                    aria-label="add-attributes"
+                                    value={1}
+                                />
+                                <Tab
+                                    icon={<CodeIcon fontSize='large'
+                                        color='error' />}
+                                    aria-label="code-html"
+                                    value={2}
+                                />
+                            </Tabs>
+                        </Grid>
+                        <TabPanelAddClasses sOverview={sOverview} node={nodeData} value={valueTag} index={0}></TabPanelAddClasses>
+                        <TabPanelAddAttributes sOverview={sOverview} node={nodeData} value={valueTag} index={1}></TabPanelAddAttributes>
+                        <TabPanelHTMLCode sOverview={sOverview} node={nodeData} value={valueTag} index={2}></TabPanelHTMLCode>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button variant="contained" autoFocus onClick={() => updatedAttr2Server()} color="primary">
+                            Apply
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     )
 });
+export const TabPanelAddClasses: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
+    const classes = useTreeItemStyles();
+    useEffect(() => {
+        if (node != null) {
+            sOverview.getClassesFromNode(node);
+        }
+    }, [node]);
+
+    const handleDelete = useCallback((x) => {
+        if (sOverview.classes.length) {
+            sOverview.deleteClassInNode(x);
+        }
+    }, [sOverview]);
+
+    const addClass = useCallback(() => {
+        sOverview.addClassInNode();
+    }, [sOverview]);
+
+    return (value == index && (
+        <Grid container spacing={3}>
+            <Paper variant="outlined" className={classes.paperContent}>
+                <Grid item xs >
+                    <Box component="div" p={1.5} ></Box>
+                    <Box ml={3} component="div" display="inline"></Box>
+                    <Box component="div" display="inline" p={2} ml={2} bgcolor="#f2f2f2">
+                        Classes:
+                        </Box>
+                    <TextField
+                        variant="outlined"
+                        label="name"
+                        onChange={(e) => sOverview.set_dataClass(e.target.value)}
+                        style={{ width: "550px" }}>
+                    </TextField>
+                    <IconButton aria-label="add"
+                        className={classes.addIcon}
+                        color="primary" size="medium"
+                        onClick={() => addClass()}
+                    >
+                        <AddIcon fontSize="large" style={{ color: "white" }} />
+                    </IconButton>
+                </Grid>
+                <Grid item xs >
+                    <Box ml={3} component="div" display="inline"></Box>
+                    {sOverview.classes.length > 0 && sOverview.classes.map(x => {
+                        return <Chip
+                            label={x}
+                            onDelete={() => handleDelete(x)}
+                            className={classes.chip}
+                        />
+                    })}
+                </Grid>
+            </Paper>
+        </Grid>)
+    );
+});
+
+export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
+    const classes = useTreeItemStyles();
+    useEffect(() => {
+        if (node != null) {
+            sOverview.updateAttrFromData(node);
+        }
+    }, [node]);
+
+    const addAttribute = useCallback(() => {
+        sOverview.addAttribute();
+    }, [sOverview])
+
+    const removeAttribute = useCallback((keyValue) => {
+        sOverview.removeAttribute(keyValue);
+    }, [sOverview])
+
+    const updateAttribute = useCallback((key) => {
+        sOverview.updateAttribute(key);
+    }, [sOverview])
+
+    return (value == index && (
+        <Grid container spacing={3}>
+            <Paper variant="outlined" className={classes.paperContent}>
+                <Grid item xs >
+                    <Box component="div" p={1.5} ></Box>
+                    <Box ml={3} component="div" display="inline"></Box>
+                    <Box component="div" display="inline" p={2} ml={2} bgcolor="#f2f2f2">
+                        Attributes:
+                        </Box>
+                    <TextField variant="outlined" label="name" style={{ width: "250px" }}
+                        onChange={(e) => sOverview.attribute.set_key(e.target.value)}
+                    >
+                    </TextField>
+                    <TextField variant="outlined" label="value" style={{ width: "300px" }}
+                        onChange={(e) => sOverview.attribute.set_value(e.target.value)}
+                    >
+                    </TextField>
+                    <IconButton aria-label="add"
+                        className={classes.addIcon}
+                        color="primary" size="medium"
+                        onClick={() => addAttribute()}
+                    >
+                        <AddIcon fontSize="large" style={{ color: "white" }} />
+                    </IconButton>
+                </Grid>
+                <Grid item xs >
+                    {sOverview.attributes.length > 0 &&
+                        sOverview.attributes.map(x => {
+                            return (<>
+                                <Box component="div" p={0.5} ></Box>
+                                <Box ml={5} component="div" display="inline"></Box>
+                                <TextField variant="outlined" value={x.key} style={{ width: "280px" }}
+                                    disabled>
+                                </TextField>
+                                <TextField variant="outlined" value={x.value} style={{ width: "300px" }}
+                                    onChange={(e) => sOverview.attribute.set_value(e.target.value)}
+                                >
+                                </TextField>
+                                <IconButton aria-label="done"
+                                    className={classes.addIcon}
+                                    color="primary" size="medium"
+                                    onClick={() => updateAttribute(x.key)}
+                                >
+                                    <DoneIcon fontSize="large" style={{ color: "white" }} />
+                                </IconButton>
+                                <IconButton aria-label="remove"
+                                    className={classes.addIcon}
+                                    onClick={() => removeAttribute(x.key)}
+                                    color="secondary" size="medium">
+                                    <DeleteForeverIcon fontSize="large" style={{ color: "white" }} />
+                                </IconButton>
+                            </>)
+                        })
+                    }
+
+                </Grid>
+            </Paper>
+        </Grid>)
+    );
+});
+
+export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
+    const classes = useTreeItemStyles();
+    useEffect(() => {
+        if(node != null) {
+            console.log("Node name: " + node.name);
+        }
+    }, [node]);
+    return (value == index && (
+        <Grid container spacing={3}>
+            <Paper variant="outlined" className={classes.paperContent} >
+                <Grid item xs >
+                    {/* {node != null && <div>{node}</div>} */}
+                </Grid>
+            </Paper>
+        </Grid>)
+    );
+});
+

@@ -36,9 +36,10 @@ export class CKEditor {
 
     static async save(e: CKEditor) {
         let formData = new FormData();
+        let data = e.getContent;
+        data = data.replaceAll(">", ">\n");
         formData.append("id", e.getId);
-        formData.append("content", e.getContent);
-        console.log(e.getContent);
+        formData.append("content", data);
         await fetchFormData("POST",`/api/index.php`, formData);
     }
 
