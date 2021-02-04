@@ -29,14 +29,14 @@ import H_P_attrConversionPlugin from '../../components/CKEditor/H_P_attrConversi
 import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 import { makeStyles } from '@material-ui/core/styles';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@material-ui/core';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Switch, Box } from '@material-ui/core';
 import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
 import { renderToString } from 'react-dom/server'
 
 const useStyles = makeStyles((theme) => ({
     btn: {
         '& > *': {
-            margin: theme.spacing(2),
+            margin: theme.spacing(1),
         },
     },
     borderTag: {
@@ -52,7 +52,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [action, setAction] = useState("");
     const [openDialogAction, setOpenDialogAction] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
-    const [disabled, setDisabled] = React.useState(true);
+    const [editMode, setEditMode] = React.useState(false);
     const [mouseMove, setMouseMove] = React.useState(false);
     // const { enqueueSnackbar } = useSnackbar();
     useEffect(() => {
@@ -107,8 +107,8 @@ export const HomePage: FC<{}> = observer(({ }) => {
     }, [sCKEditor]);
 
     const edit = useCallback(() => {
-        setDisabled(false);
-    }, [disabled])
+        setEditMode(!editMode);
+    }, [editMode])
 
     function handledOnclick() {
         console.log("Hello World");
@@ -116,10 +116,11 @@ export const HomePage: FC<{}> = observer(({ }) => {
 
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
+            let attrs = node.attribs;
             return <node.name id={node.attribs.id} class={node.attribs.class} key={index}
                 onClick={handledOnclick}
-                // onMouseEnter={() => {node.attribs.class = node.attribs.class + " borderTag"}}
-                // onMouseLeave={() => setMouseMove(false)}
+            // onMouseEnter={() => {node.attribs.class = node.attribs.class + " borderTag"}}
+            // onMouseLeave={() => setMouseMove(false)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
@@ -134,64 +135,78 @@ export const HomePage: FC<{}> = observer(({ }) => {
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
             <div className={classes.btn}>
                 <Button variant="contained" onClick={showDialogReset}>Reset</Button>
-                <Button variant="contained" color="primary" onClick={edit} >
+                {/* <Button variant="contained" color="primary" onClick={edit} >
                     Edit
-                </Button>
+                </Button> */}
                 <Button variant="contained" color="primary" onClick={showDialogSave}>
                     Save
                 </Button>
-            </div>
-            <CKEditor
-                editor={InlineEditor}
-                config={{
-                    extraPlugins: [DIVConversionPlugin, SpanConversionPlugin,
-                        // AnchorConversionPlugin, 
-                        ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
-                        UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
-                        BtnConversionPlugin, SectionConversionPlugin,
-                        H_P_attrConversionPlugin,
-                        LabelConversionPlugin,
-                        H1ConversionPlugin,
-                        H2ConversionPlugin,
-                        H3ConversionPlugin,
-                        H4ConversionPlugin,
-                        H5ConversionPlugin,
-                        PConverstionPlugin,
-                    ],
-                    heading: {
-                        options: [
-                            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                            { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-                            { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-                            { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
-                            { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
-                            { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
-                            { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
-                        ]
-                    }
-                }}
+                <FormControlLabel
+                    style={{marginLeft: '720px'}}
+                    control={
+                        <Switch
+                            checked={editMode}
+                            onChange={edit}
+                            name="edit"
+                            color="primary"
 
-                data={renderToString(ReactHtmlParser(sCKEditor.data, options))}
-                onReady={editor => {
-                    // You can store the "editor" and use when it is needed.
-                    console.log('Editor is ready to use!', editor);
-                }}
-                onChange={(event, editor) => {
-                    const data = editor.getData();
-                    sCKEditor.ckeditor.set_content(data);
-                }}
-                onBlur={(event, editor) => {
-                    console.log('Blur.', editor);
-                }}
-                onFocus={(event, editor) => {
-                    console.log('Focus.', editor);
-                }}
-                disabled={disabled}
-            />
+                        />
+                    }
+                    labelPlacement="end"
+                    label="EDIT MODE"
+                />
+            </div>
         </div>
-        {/* <div>
+        {editMode ? 
+        <CKEditor
+            editor={InlineEditor}
+            config={{
+                extraPlugins: [DIVConversionPlugin, SpanConversionPlugin,
+                    // AnchorConversionPlugin, 
+                    ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
+                    UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
+                    BtnConversionPlugin, SectionConversionPlugin,
+                    H_P_attrConversionPlugin,
+                    LabelConversionPlugin,
+                    H1ConversionPlugin,
+                    H2ConversionPlugin,
+                    H3ConversionPlugin,
+                    H4ConversionPlugin,
+                    H5ConversionPlugin,
+                    PConverstionPlugin,
+                ],
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                        { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+                        { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+                        { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+                    ]
+                }
+            }}
+
+            data={renderToString(ReactHtmlParser(sCKEditor.data, options))}
+            onReady={editor => {
+                // You can store the "editor" and use when it is needed.
+                console.log('Editor is ready to use!', editor);
+            }}
+            onChange={(event, editor) => {
+                const data = editor.getData();
+                sCKEditor.ckeditor.set_content(data);
+            }}
+            onBlur={(event, editor) => {
+                console.log('Blur.', editor);
+            }}
+            onFocus={(event, editor) => {
+                console.log('Focus.', editor);
+            }}
+        />
+        : <div style={{ margin: '10px' }}>
             {ReactHtmlParser(sCKEditor.data, options)}
-        </div> */}
+        </div>}
         <Dialog
             open={openDialogAction}
             onClose={handledCloseDialogAction}
