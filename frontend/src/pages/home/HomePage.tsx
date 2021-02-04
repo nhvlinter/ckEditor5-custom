@@ -30,6 +30,8 @@ import styles from "./HomePage.module.scss";
 import { BasicLayout } from '../../layouts/BasicLayout';
 import { makeStyles } from '@material-ui/core/styles';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@material-ui/core';
+import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
+import { renderToString } from 'react-dom/server'
 
 const useStyles = makeStyles((theme) => ({
     btn: {
@@ -101,7 +103,31 @@ export const HomePage: FC<{}> = observer(({ }) => {
 
     const edit = useCallback(() => {
         setDisabled(false);
-    },[disabled])
+    }, [disabled])
+
+    function handledOnclick() {
+        console.log("Hello World");
+    }
+
+    function handledMouseOver() {
+        console.log("Mouse Over");
+    }
+
+    function transform(node, index) {
+        if (node.name != undefined && node.name != null) {
+            return <node.name id={node.attribs.id} class={node.attribs.class} key={index}
+                onClick={handledOnclick}
+                onMouseOver={handledMouseOver}
+            >{processNodes(node.children, transform)}</node.name>
+            // node.onClick={handledOnclick}
+            // return convertNodeToElement(node, index, transform);
+        }
+    }
+
+    const options = {
+        decodeEntities: true,
+        transform
+    };
 
     return (<BasicLayout>
         <div>
@@ -145,7 +171,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     }
                 }}
 
-                data={sCKEditor.data}
+                data={renderToString(ReactHtmlParser(sCKEditor.data, options))}
                 onReady={editor => {
                     // You can store the "editor" and use when it is needed.
                     console.log('Editor is ready to use!', editor);
@@ -162,6 +188,9 @@ export const HomePage: FC<{}> = observer(({ }) => {
                 }}
                 disabled={disabled}
             />
+        </div>
+        <div>
+            {ReactHtmlParser(sCKEditor.data, options)}
         </div>
         <Dialog
             open={openDialogAction}

@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
 import { TreeViewData } from "../models/TreeViewData";
 import { BaseStore } from "./BaseStore";
+import Button from "@material-ui/core/Button";
 
 export class TreeViewDataStore {
 
@@ -25,7 +26,12 @@ export class TreeViewDataStore {
         const [err, dataGet] = await CKEditor.get();
         if (!err && dataGet) {
             let data = "<html><body ><div class='body-inner' id='root'>" + dataGet + "</div></body></html>";
-            let dataConvertHTML = ReactHtmlParser(data);
+            let dataConvertHTML = ReactHtmlParser(data,
+                {
+                    decodeEntities: true,
+                    transform(node, index) {
+                    }
+                });
             this.getAllNodeChild(dataConvertHTML, null);
         }
         return err;
