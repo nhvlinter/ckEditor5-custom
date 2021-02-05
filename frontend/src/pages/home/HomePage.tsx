@@ -116,11 +116,10 @@ export const HomePage: FC<{}> = observer(({ }) => {
 
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
-            let attrs = node.attribs;
-            return <node.name id={node.attribs.id} class={node.attribs.class} key={index}
+            return <node.name
+                {...node.attribs}
+                key={index}
                 onClick={handledOnclick}
-            // onMouseEnter={() => {node.attribs.class = node.attribs.class + " borderTag"}}
-            // onMouseLeave={() => setMouseMove(false)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
@@ -142,7 +141,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     Save
                 </Button>
                 <FormControlLabel
-                    style={{marginLeft: '720px'}}
+                    style={{ marginLeft: '720px' }}
                     control={
                         <Switch
                             checked={editMode}
@@ -157,56 +156,56 @@ export const HomePage: FC<{}> = observer(({ }) => {
                 />
             </div>
         </div>
-        {editMode ? 
-        <CKEditor
-            editor={InlineEditor}
-            config={{
-                extraPlugins: [DIVConversionPlugin, SpanConversionPlugin,
-                    // AnchorConversionPlugin, 
-                    ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
-                    UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
-                    BtnConversionPlugin, SectionConversionPlugin,
-                    H_P_attrConversionPlugin,
-                    LabelConversionPlugin,
-                    H1ConversionPlugin,
-                    H2ConversionPlugin,
-                    H3ConversionPlugin,
-                    H4ConversionPlugin,
-                    H5ConversionPlugin,
-                    PConverstionPlugin,
-                ],
-                heading: {
-                    options: [
-                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
-                        { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
-                        { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
-                        { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
-                    ]
-                }
-            }}
+        {editMode ?
+            <CKEditor
+                editor={InlineEditor}
+                config={{
+                    extraPlugins: [DIVConversionPlugin, SpanConversionPlugin,
+                        // AnchorConversionPlugin, 
+                        ImageConversionPlugin, IconConversionPlugin, FormConversionPlugin,
+                        UlConversionPlugin, InputConversionPlugin, TextAreaConversionPlugin, ATagConversionPlugin,
+                        BtnConversionPlugin, SectionConversionPlugin,
+                        H_P_attrConversionPlugin,
+                        LabelConversionPlugin,
+                        H1ConversionPlugin,
+                        H2ConversionPlugin,
+                        H3ConversionPlugin,
+                        H4ConversionPlugin,
+                        H5ConversionPlugin,
+                        PConverstionPlugin,
+                    ],
+                    heading: {
+                        options: [
+                            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                            { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                            { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                            { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                            { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+                            { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+                            { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+                        ]
+                    }
+                }}
 
-            data={renderToString(ReactHtmlParser(sCKEditor.data, options))}
-            onReady={editor => {
-                // You can store the "editor" and use when it is needed.
-                console.log('Editor is ready to use!', editor);
-            }}
-            onChange={(event, editor) => {
-                const data = editor.getData();
-                sCKEditor.ckeditor.set_content(data);
-            }}
-            onBlur={(event, editor) => {
-                console.log('Blur.', editor);
-            }}
-            onFocus={(event, editor) => {
-                console.log('Focus.', editor);
-            }}
-        />
-        : <div style={{ margin: '10px' }}>
-            {ReactHtmlParser(sCKEditor.data, options)}
-        </div>}
+                data={renderToString(ReactHtmlParser(sCKEditor.data, options))}
+                onReady={editor => {
+                    // You can store the "editor" and use when it is needed.
+                    console.log('Editor is ready to use!', editor);
+                }}
+                onChange={(event, editor) => {
+                    const data = editor.getData();
+                    sCKEditor.ckeditor.set_content(data);
+                }}
+                onBlur={(event, editor) => {
+                    console.log('Blur.', editor);
+                }}
+                onFocus={(event, editor) => {
+                    console.log('Focus.', editor);
+                }}
+            />
+            : <div style={{ margin: '10px' }}>
+                {ReactHtmlParser(sCKEditor.data, options)}
+            </div>}
         <Dialog
             open={openDialogAction}
             onClose={handledCloseDialogAction}

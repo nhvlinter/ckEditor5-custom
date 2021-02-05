@@ -171,7 +171,7 @@ export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
                     nodeId={item.nodeId != null ? item.nodeId : "1"}
                     label={<div className={classes.labelRoot} >
                         {item.label}
-                        <Box ml={2} />
+                        <Box ml={3} />
                         <BorderColorIcon
                             onClick={() => handleClickOpen(item.label)}
                         />
@@ -275,7 +275,7 @@ export const TabPanelAddAttributes = observer(() => {
                         </Box>
                     <TextField variant="outlined" label="name" style={{ width: "250px" }}>
                     </TextField>
-                    <TextField variant="outlined" label="value" style={{ width: "250px" }}>
+                    <TextField variant="outlined" label="value" style={{ width: "300px" }}>
                     </TextField>
                     <IconButton aria-label="add"
                         className={classes.addIcon}
