@@ -25,6 +25,8 @@ import MenuIcon from '@material-ui/icons/Menu';
 import { cpus } from 'os';
 import clsx from 'clsx';
 import { Overview } from './Overview';
+import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
+import { TreeViewData } from "../../models/TreeViewData";
 
 const drawerWidth = 260;
 const drawerHeight = 350;
@@ -165,7 +167,8 @@ export const SiderMenuLeft: FC<{ collapsed: boolean }> = observer(({ collapsed }
 	};
 
 	useEffect(() => {
-        sTreeViewData.init();
+		sTreeViewData.initTreeView().then(() => {
+		})
     });
 
 	const handleDrawerClose = () => {

@@ -18,6 +18,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import CodeIcon from '@material-ui/icons/Code';
 import AddIcon from '@material-ui/icons/Add';
 import PropTypes from 'prop-types';
+import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
 
 const useTreeItemStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -135,8 +136,8 @@ const DialogActions = withStyles((theme) => ({
     },
 }))(MuiDialogActions);
 
-export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
-    const { sTreeViewData } = useStore();
+export const Overview: FC<{ item: any }> = observer(({ item }) => {
+    const { sTreeViewData, sCKEditor } = useStore();
     const classes = useTreeItemStyles();
     const [open, setOpen] = React.useState(false);
     const [tag, setTag] = useState("");
@@ -154,39 +155,47 @@ export const Overview: FC<{ item: TreeViewData }> = observer(({ item }) => {
         setValueTag(newValue);
     };
 
+    function transform(node, index) {
+        if (node.name != undefined && node.name != null) {
+            return (
+                <TreeView
+                    defaultCollapseIcon={<ExpandMoreIcon />}
+                    defaultExpandIcon={<ChevronRightIcon />}
+                >
+                    {/* {node.children.length != 1 && */}
+                        <TreeItem
+                            classes={{
+                                root: classes.root,
+                                expanded: classes.expanded,
+                                selected: classes.selected,
+                                group: classes.group,
+                                label: classes.label,
+                            }}
+                            nodeId={index}
+                            label={<div className={classes.labelRoot} >
+                                {node.name}
+                                <Box ml={3} />
+                                <BorderColorIcon
+                                    onClick={() => handleClickOpen(node.name)}
+                                />
+                            </div>}
+                        >
+                            {node.children.length != 1 && processNodes(node.children, transform)}
+                        </TreeItem>
+                    {/* } */}
+                </TreeView>
+            );
+        }
+    }
+
+    const options = {
+        decodeEntities: true,
+        transform
+    };
+
     return (
         <>
-            <TreeView
-                defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}
-            >
-                <TreeItem
-                    classes={{
-                        root: classes.root,
-                        expanded: classes.expanded,
-                        selected: classes.selected,
-                        group: classes.group,
-                        label: classes.label,
-                    }}
-                    nodeId={item.nodeId != null ? item.nodeId : "1"}
-                    label={<div className={classes.labelRoot} >
-                        {item.label}
-                        <Box ml={3} />
-                        <BorderColorIcon
-                            onClick={() => handleClickOpen(item.label)}
-                        />
-                    </div>}
-                >
-                    {item.child != null && (
-                        <>
-                            {item.child.map(i => {
-                                return (<>
-                                    <Overview item={i}></Overview>
-                                </>)
-                            })}
-                        </>)}
-                </TreeItem>
-            </TreeView>
+            {ReactHtmlParser(sCKEditor.data, options)}
             <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='lg'>
                 <DialogTitle id="customized-dialog-title" onClose={handleClose}>
                     {"<" + tag.toUpperCase() + "/>"}
@@ -254,7 +263,7 @@ export const TabPanelAddClasses = observer(() => {
                     <IconButton aria-label="add"
                         className={classes.addIcon}
                         color="primary" size="medium">
-                        <AddIcon fontSize="large" style={{color: "white"}} />
+                        <AddIcon fontSize="large" style={{ color: "white" }} />
                     </IconButton>
                 </Grid>
             </Paper>
@@ -280,7 +289,7 @@ export const TabPanelAddAttributes = observer(() => {
                     <IconButton aria-label="add"
                         className={classes.addIcon}
                         color="primary" size="medium">
-                        <AddIcon fontSize="large" style={{color: "white"}} />
+                        <AddIcon fontSize="large" style={{ color: "white" }} />
                     </IconButton>
                 </Grid>
             </Paper>

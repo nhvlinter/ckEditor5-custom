@@ -141,7 +141,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     Save
                 </Button>
                 <FormControlLabel
-                    style={{ marginLeft: '720px' }}
+                    style={{ textAlign: "right" }}
                     control={
                         <Switch
                             checked={editMode}

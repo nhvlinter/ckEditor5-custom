@@ -1,4 +1,5 @@
 import { observable, action } from "mobx";
+import { AttributeHTML } from './AttributeHTML';
 
 export class TreeViewData {
     @observable check: boolean = false;
@@ -6,10 +7,11 @@ export class TreeViewData {
     @observable parent: TreeViewData | null = null;
     @observable nodeId: string | null = null;
     @observable label: string = "";
+    @observable attrbs: AttributeHTML[] | null = [];
 
     constructor(data?: any) {
         if (data != null) {
-            const {child, parent, ...pData } = data;
+            const {child, parent, attrbs, ...pData } = data;
             Object.assign(this, data);
             if(child) {
                 this.child = child.map((x:any) => new TreeViewData(x));
@@ -22,6 +24,12 @@ export class TreeViewData {
             }
             if(this.parent == null) {
                 this.parent = new TreeViewData();
+            }
+            if(attrbs) {
+                this.attrbs = attrbs.map((x:any) => new AttributeHTML(x));
+            }
+            if(this.attrbs == null) {
+                this.attrbs = [];
             }
         }
     }
@@ -41,6 +49,13 @@ export class TreeViewData {
             this.child = [];
         } else {
             this.child = v.map(x => x);
+        }
+    }
+    @action set_attrbs = (v: AttributeHTML[] | null) => {
+        if(!v) {
+            this.attrbs = [];
+        } else {
+            this.attrbs = v.map(x => x);
         }
     }
 

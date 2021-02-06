@@ -11,28 +11,24 @@ export class TreeViewDataStore {
     @observable index: number = 0;
     @observable dataTemp: TreeViewData[] = [];
     @observable data: TreeViewData;
+    @observable dataHTML = "";
+    
     constructor(private store: BaseStore) {
         this.index = 0;
         this.dataTemp = [];
         this.data = new TreeViewData();
+        this.dataHTML = "";
     }
 
     @action async init() {
         await this.initTreeView();
-        await this.createTree(this.data);
+        // await this.createTree(this.data);
     }
 
     @action async initTreeView() {
         const [err, dataGet] = await CKEditor.get();
         if (!err && dataGet) {
-            let data = "<html><body ><div class='body-inner' id='root'>" + dataGet + "</div></body></html>";
-            let dataConvertHTML = ReactHtmlParser(data,
-                {
-                    decodeEntities: true,
-                    transform(node, index) {
-                    }
-                });
-            this.getAllNodeChild(dataConvertHTML, null);
+            this.dataHTML = "<html><body ><div class='body-inner' id='root'>" + dataGet + "</div></body></html>";
         }
         return err;
     }
