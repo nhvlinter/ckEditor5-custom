@@ -116,8 +116,22 @@ export const HomePage: FC<{}> = observer(({ }) => {
 
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
+            let styleTag = {};
+            if (node.attribs.style != undefined) {
+                let style = node.attribs.style;
+                let arrayTemp = style.split(",");
+                for(let i = 0; i < arrayTemp.length; i++) {
+                    let temp = arrayTemp[i].split(":");
+                    if(temp.length == 2) {
+                        let key = temp[0].trim();
+                        let value = temp[1].trim();
+                        styleTag[key] = value.replaceAll("'", "");
+                    }
+                }
+            }
             return <node.name
                 {...node.attribs}
+                style={styleTag}
                 key={index}
                 onClick={handledOnclick}
             >{processNodes(node.children, transform)}</node.name>
