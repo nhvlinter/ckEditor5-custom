@@ -8,6 +8,7 @@ export class CKEditorStore {
     @observable dataChanges: string = "";
     @observable ckeditor: CKEditor;
     @observable treeViewDataStore: TreeViewDataStore = new TreeViewDataStore();
+    @observable
     constructor(private store: BaseStore) {
         this.ckeditor = new CKEditor();
         this.treeViewDataStore = new TreeViewDataStore();
@@ -70,5 +71,14 @@ export class CKEditorStore {
         this.ckeditor.set_id("editor");
         this.set_data(this.ckeditor.getContent);
         await CKEditor.save(this.ckeditor);
+    }
+
+    @action async saveDataChanged(data) {
+        const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;
+        data = data.replaceAll(emptyParagraphRegexp, "");
+        let ckeditor = new CKEditor();
+        ckeditor.set_id("editor");
+        ckeditor.set_content(data);
+        await CKEditor.save(ckeditor);
     }
 }

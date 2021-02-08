@@ -8,6 +8,7 @@ import {BaseStore} from "./BaseStore";
 import { CKEditorStore } from './CKEditorStore';
 import { ModalStore } from './ModalStore';
 import { TreeViewDataStore } from './TreeViewDataStore';
+import { OverviewStore } from './OverviewStore';
 export class Store extends BaseStore {
     routerStore         : RouterStore;
     constructor() {
@@ -20,5 +21,6 @@ export class Store extends BaseStore {
     sCKEditor = new CKEditorStore(this);
     sModal = new ModalStore(this);
     sTreeViewData = new TreeViewDataStore(this);
+    sOverview = new OverviewStore(this);
 
 }

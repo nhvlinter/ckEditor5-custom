@@ -134,6 +134,8 @@ export const HomePage: FC<{}> = observer(({ }) => {
                 style={styleTag}
                 key={index}
                 onClick={handledOnclick}
+                onMouseEnter={() => console.log("Mouse Enter")}
+                onMouseLeave={() => console.log("Mouse Leave")}
             >{processNodes(node.children, transform)}</node.name>
         }
     }

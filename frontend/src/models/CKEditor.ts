@@ -38,7 +38,6 @@ export class CKEditor {
         let formData = new FormData();
         formData.append("id", e.getId);
         formData.append("content", e.getContent);
-        console.log(e.getContent);
         await fetchFormData("POST",`/api/index.php`, formData);
     }
 
