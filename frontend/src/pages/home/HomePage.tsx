@@ -94,15 +94,18 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const reset = useCallback(() => {
         sCKEditor.get().then(result => {
             if (result != null && result != "") {
-                window.location.href = "/";
+                sCKEditor.init();
+                setOpenDialogAction(false);
+                // window.location.href = "/";
             }
         })
     }, [sCKEditor]);
 
     const save = useCallback(() => {
-        console.log("Save ");
         sCKEditor.save().then(result => {
-            window.location.href = "/";
+            sCKEditor.init();
+            setOpenDialogAction(false);
+            // window.location.href = "/";
         })
     }, [sCKEditor]);
 
@@ -120,9 +123,9 @@ export const HomePage: FC<{}> = observer(({ }) => {
             if (node.attribs.style != undefined) {
                 let style = node.attribs.style;
                 let arrayTemp = style.split(",");
-                for(let i = 0; i < arrayTemp.length; i++) {
+                for (let i = 0; i < arrayTemp.length; i++) {
                     let temp = arrayTemp[i].split(":");
-                    if(temp.length == 2) {
+                    if (temp.length == 2) {
                         let key = temp[0].trim();
                         let value = temp[1].trim();
                         styleTag[key] = value.replaceAll("'", "");

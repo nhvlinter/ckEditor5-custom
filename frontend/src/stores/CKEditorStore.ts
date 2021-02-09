@@ -8,7 +8,6 @@ export class CKEditorStore {
     @observable dataChanges: string = "";
     @observable ckeditor: CKEditor;
     @observable treeViewDataStore: TreeViewDataStore = new TreeViewDataStore();
-    @observable
     constructor(private store: BaseStore) {
         this.ckeditor = new CKEditor();
         this.treeViewDataStore = new TreeViewDataStore();
@@ -80,5 +79,6 @@ export class CKEditorStore {
         ckeditor.set_id("editor");
         ckeditor.set_content(data);
         await CKEditor.save(ckeditor);
+        this.init();
     }
 }

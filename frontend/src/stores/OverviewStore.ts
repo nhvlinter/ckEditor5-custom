@@ -45,7 +45,7 @@ export class OverviewStore {
 
     @action async getClassesFromNode(node) {
         if (node != null && node.attribs != null && node.attribs.class != null) {
-            let arrayTemp = node.attribs.class.split(" ");
+            let arrayTemp = node.attribs.class.trim().split(" ");
             this.classes = arrayTemp;
         }
     }

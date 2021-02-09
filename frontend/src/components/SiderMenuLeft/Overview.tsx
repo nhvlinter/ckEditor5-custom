@@ -144,16 +144,12 @@ const DialogActions = withStyles((theme) => ({
 }))(MuiDialogActions);
 
 export const Overview: FC<{ item: any }> = observer(({ item }) => {
-    const { sTreeViewData, sCKEditor, sOverview } = useStore();
+    const { sTreeViewData, sCKEditor, sOverview, routerStore } = useStore();
     const classes = useTreeItemStyles();
     const [open, setOpen] = React.useState(false);
     const [tag, setTag] = useState("");
     const [valueTag, setValueTag] = useState(0);
     const [nodeData, setNodeData] = useState(null);
-
-    useEffect(() => {
-        sOverview.init();
-    });
 
     const handleClickOpen = (nodeData) => {
         sOverview.init();
@@ -171,94 +167,94 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     };
 
     const updatedAttr2Server = () => {
-        if(nodeData != null) {
+        if (nodeData != null) {
             let dataHtml = ReactHtmlParser(sCKEditor.data, {
-                transform (node) {
-                    if(isEqualNode(node, nodeData)) {
-                        if(sOverview.classes.length > 0) {
+                transform(node) {
+                    if (isEqualNode(node, nodeData)) {
+                        if (sOverview.classes.length > 0) {
                             let classes = "";
-                            for(let i =0; i < sOverview.classes.length; i++) {
+                            for (let i = 0; i < sOverview.classes.length; i++) {
                                 classes += sOverview.classes[i] + " ";
                             }
                             node.attribs.class = classes;
                         }
-                        if(sOverview.attributes.length > 0) {
-                            for(let i = 0; i < sOverview.attributes.length; i++) {
+                        if (sOverview.attributes.length > 0) {
+                            for (let i = 0; i < sOverview.attributes.length; i++) {
                                 node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
                             }
                         }
-                    } 
+                    }
                 }
             });
             let dataSaved = renderToString(dataHtml);
             sCKEditor.saveDataChanged(dataSaved);
-            window.location.href = "/";
+            setOpen(false);
         }
     }
 
     function isEqualNode(oneNode, twoNode) {
         let flag = true;
-        if(oneNode.children != undefined && twoNode.children == undefined) {
+        if (oneNode.children != undefined && twoNode.children == undefined) {
             return false;
         }
-        if(oneNode.children == undefined && twoNode.children != undefined) {
+        if (oneNode.children == undefined && twoNode.children != undefined) {
             return false;
         }
-        if(oneNode.children != undefined && twoNode.children != undefined) {
-            if(oneNode.children.length != twoNode.children.length) {
+        if (oneNode.children != undefined && twoNode.children != undefined) {
+            if (oneNode.children.length != twoNode.children.length) {
                 return false;
             }
         }
-        if(oneNode.name != twoNode.name) {
+        if (oneNode.name != twoNode.name) {
             return false;
         }
-        if(oneNode.attribs != undefined && twoNode.attribs == undefined) {
+        if (oneNode.attribs != undefined && twoNode.attribs == undefined) {
             return false;
         }
-        if(oneNode.attribs == undefined && twoNode.attribs != undefined) {
+        if (oneNode.attribs == undefined && twoNode.attribs != undefined) {
             return false;
         }
-        if(oneNode.attribs != undefined && twoNode.attribs != undefined) {
+        if (oneNode.attribs != undefined && twoNode.attribs != undefined) {
             let oneAttr = Object.entries(oneNode.attribs);
             let twoAttr = Object.entries(twoNode.attribs);
-            if(oneAttr.length != twoAttr.length) {
+            if (oneAttr.length != twoAttr.length) {
                 return false;
             } else {
                 let count = 0;
-                for(let i = 0; i < oneAttr.length; i++) {
-                    for(let j = 0; j < twoAttr.length; j++) {
-                        if(oneAttr[i][0] == twoAttr[j][0] && oneAttr[i][1] == twoAttr[j][1]) {
-                            count ++;
+                for (let i = 0; i < oneAttr.length; i++) {
+                    for (let j = 0; j < twoAttr.length; j++) {
+                        if (oneAttr[i][0] == twoAttr[j][0] && oneAttr[i][1] == twoAttr[j][1]) {
+                            count++;
                         }
                     }
                 }
-                if(oneAttr.length != count) {
+                if (oneAttr.length != count) {
                     return false;
                 }
             }
         }
-        if(oneNode.parent != undefined && twoNode.parent == undefined) {
+        if (oneNode.parent != undefined && twoNode.parent == undefined) {
             return false;
         }
-        if(oneNode.parent == undefined && twoNode.parent != undefined) {
+        if (oneNode.parent == undefined && twoNode.parent != undefined) {
             return false;
         }
         // if(oneNode.parent != undefined && twoNode.parent != undefined) {
         //     return isEqualNode(oneNode.parent, twoNode.parent);
         // }
-        if(oneNode.prev != undefined && twoNode.prev == undefined) {
+        if (oneNode.prev != undefined && twoNode.prev == undefined) {
             return false;
         }
-        if(oneNode.prev == undefined && twoNode.prev != undefined) {
+        if (oneNode.prev == undefined && twoNode.prev != undefined) {
             return false;
         }
         // if(oneNode.prev != undefined && twoNode.prev != undefined) {
         //     return isEqualNode(oneNode.prev, twoNode.prev);
         // }
-        if(oneNode.next != undefined && twoNode.next == undefined) {
+        if (oneNode.next != undefined && twoNode.next == undefined) {
             return false;
         }
-        if(oneNode.next == undefined && twoNode.next != undefined) {
+        if (oneNode.next == undefined && twoNode.next != undefined) {
             return false;
         }
         // if(oneNode.next != undefined && twoNode.next != undefined) {
@@ -342,12 +338,9 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
                                 />
                             </Tabs>
                         </Grid>
-                        {valueTag == 0 ? <TabPanelAddClasses node={nodeData} ></TabPanelAddClasses>
-                            : valueTag == 1 ? <TabPanelAddAttributes node={nodeData}></TabPanelAddAttributes>
-                                : valueTag == 2 ? <TabPanelHTMLCode></TabPanelHTMLCode>
-                                    : <></>
-                        }
-
+                        <TabPanelAddClasses sOverview={sOverview} node={nodeData} value={valueTag} index={0}></TabPanelAddClasses>
+                        <TabPanelAddAttributes sOverview={sOverview} node={nodeData} value={valueTag} index={1}></TabPanelAddAttributes>
+                        <TabPanelHTMLCode sOverview={sOverview} node={nodeData} value={valueTag} index={2}></TabPanelHTMLCode>
                     </DialogContent>
                     <DialogActions>
                         <Button variant="contained" autoFocus onClick={() => updatedAttr2Server()} color="primary">
@@ -359,9 +352,8 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
         </>
     )
 });
-export const TabPanelAddClasses: FC<{ node }> = observer(({ node }) => {
+export const TabPanelAddClasses: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
     const classes = useTreeItemStyles();
-    const { sOverview } = useStore();
     useEffect(() => {
         if (node != null) {
             sOverview.getClassesFromNode(node);
@@ -378,7 +370,7 @@ export const TabPanelAddClasses: FC<{ node }> = observer(({ node }) => {
         sOverview.addClassInNode();
     }, [sOverview]);
 
-    return (
+    return (value == index && (
         <Grid container spacing={3}>
             <Paper variant="outlined" className={classes.paperContent}>
                 <Grid item xs >
@@ -412,19 +404,16 @@ export const TabPanelAddClasses: FC<{ node }> = observer(({ node }) => {
                     })}
                 </Grid>
             </Paper>
-        </Grid>
+        </Grid>)
     );
 });
 
-export const TabPanelAddAttributes: FC<{ node }> = observer(({ node }) => {
+export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
     const classes = useTreeItemStyles();
-    const { sOverview } = useStore();
     useEffect(() => {
-        sOverview.init().then(() => {
-            if (node != null) {
-                sOverview.updateAttrFromData(node);
-            }
-        });
+        if (node != null) {
+            sOverview.updateAttrFromData(node);
+        }
     }, [node]);
 
     const addAttribute = useCallback(() => {
@@ -439,7 +428,7 @@ export const TabPanelAddAttributes: FC<{ node }> = observer(({ node }) => {
         sOverview.updateAttribute(key);
     }, [sOverview])
 
-    return (
+    return (value == index && (
         <Grid container spacing={3}>
             <Paper variant="outlined" className={classes.paperContent}>
                 <Grid item xs >
@@ -496,17 +485,25 @@ export const TabPanelAddAttributes: FC<{ node }> = observer(({ node }) => {
 
                 </Grid>
             </Paper>
-        </Grid>
+        </Grid>)
     );
 });
 
-export const TabPanelHTMLCode = observer(() => {
+export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
     const classes = useTreeItemStyles();
-    return (
+    useEffect(() => {
+        if(node != null) {
+            console.log("Node name: " + node.name);
+        }
+    }, [node]);
+    return (value == index && (
         <Grid container spacing={3}>
-            <Paper variant="outlined" className={classes.paperContent} disabled>
+            <Paper variant="outlined" className={classes.paperContent} >
+                <Grid item xs >
+                    {/* {node != null && <div>{node}</div>} */}
+                </Grid>
             </Paper>
-        </Grid>
+        </Grid>)
     );
 });
 
