@@ -88,6 +88,11 @@ const useTreeItemStyles = makeStyles((theme: Theme) =>
             height: theme.spacing(50),
             margin: theme.spacing(2)
         },
+        paperContentCode: {
+            width: theme.spacing(100),
+            // height: theme.spacing(50),
+            margin: theme.spacing(2)
+        },
         button: {
             margin: theme.spacing(2),
         },
@@ -491,16 +496,49 @@ export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = obse
 
 export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
     const classes = useTreeItemStyles();
+    const [html, setHtml] = useState("");
+    let codeHtml = "";
     useEffect(() => {
         if(node != null) {
-            console.log("Node name: " + node.name);
+            showCodeHTML(node);
+            console.log(codeHtml);
+            setHtml(codeHtml);
         }
     }, [node]);
+
+    function showCodeHTML(nodeData) {
+        if(nodeData.name != undefined && nodeData.name != null) {
+            let attributes = "";
+            if(nodeData.attribs != undefined && nodeData.attribs != null) {
+                let attrTemps = Object.entries(nodeData.attribs);
+                for(let i = 0; i < attrTemps.length; i++) {
+                    attributes += attrTemps[i].toString().replace(",", "=") + " ";
+                }
+            }
+            if(attributes != "") {
+                codeHtml += "<" + nodeData.name + " " + attributes.trim() + ">\n";
+            } else {
+                codeHtml += "<" + nodeData.name + ">\n";
+            }
+            if(nodeData.children != undefined && nodeData.children != null && nodeData.children.length > 0) {
+                for(let i = 0; i < nodeData.children.length; i++) {
+                    if(nodeData.children[i].data != undefined && nodeData.children[i].data != null) {
+                        codeHtml += nodeData.children[i].data;
+                    }
+                    
+                    showCodeHTML(nodeData.children[i]);
+                }
+            }
+            codeHtml += "</" + nodeData.name + ">";
+        }
+        
+    }
+
     return (value == index && (
         <Grid container spacing={3}>
-            <Paper variant="outlined" className={classes.paperContent} >
+            <Paper variant="outlined" className={classes.paperContentCode} >
                 <Grid item xs >
-                    {/* {node != null && <div>{node}</div>} */}
+                    <pre>{html}</pre>
                 </Grid>
             </Paper>
         </Grid>)
