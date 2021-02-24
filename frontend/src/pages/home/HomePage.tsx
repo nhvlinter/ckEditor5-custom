@@ -54,6 +54,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [openDialog, setOpenDialog] = React.useState(false);
     const [editMode, setEditMode] = React.useState(false);
     const [mouseMove, setMouseMove] = React.useState(false);
+    const [reactIdMove, setReactIdMove] = React.useState(0);
     // const { enqueueSnackbar } = useSnackbar();
     useEffect(() => {
         sCKEditor.init();
@@ -119,10 +120,26 @@ export const HomePage: FC<{}> = observer(({ }) => {
             sCKEditor.findAllReactIdsOfNode(node);
             e.stopPropagation();
         }
-    },[sCKEditor]);
+    }, [sCKEditor]);
+
+    const handleOnMouseEnter = useCallback((e, node) => {
+        if (node != null) {
+            setReactIdMove(node.attribs.reactid);
+            console.log("ReactId: " + node.attribs.reactid);
+            e.stopPropagation();
+        }
+    }, [reactIdMove]);
+
+    const handleOnMouseLeave = useCallback((e, node) => {
+        if (node != null) {
+            setReactIdMove(0);
+            e.stopPropagation();
+        }
+    }, [reactIdMove]);
 
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
+            let reactIdNode = node.attribs.reactid;
             let styleTag = {};
             if (node.attribs.style != undefined) {
                 let style = node.attribs.style;
@@ -136,12 +153,15 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     }
                 }
             }
+            if(reactIdNode == reactIdMove) {
+                styleTag['border'] = "2px solid blue";
+            }
             return <node.name
                 {...node.attribs}
                 style={styleTag}
                 onClick={(e) => handledOnclick(e, node)}
-            // onMouseEnter={() => console.log("Mouse Enter")}
-            // onMouseLeave={() => console.log("Mouse Leave")}
+                onMouseEnter={(e) => handleOnMouseEnter(e, node)}
+                onMouseLeave={(e) => handleOnMouseLeave(e, node)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
