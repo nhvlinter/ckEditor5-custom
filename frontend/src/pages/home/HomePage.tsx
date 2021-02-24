@@ -105,7 +105,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
         sCKEditor.save().then(result => {
             sCKEditor.init();
             setOpenDialogAction(false);
-            // window.location.href = "/";
         })
     }, [sCKEditor]);
 
@@ -115,7 +114,9 @@ export const HomePage: FC<{}> = observer(({ }) => {
 
     const handledOnclick = useCallback((e, node) => {
         if (node != null) {
-            console.log("Node name: " + node.name);
+            sCKEditor.set_reactId(node.attribs.reactid);
+            sCKEditor.reactIds = [];
+            sCKEditor.findAllReactIdsOfNode(node);
             e.stopPropagation();
         }
     },[sCKEditor]);
@@ -138,7 +139,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
             return <node.name
                 {...node.attribs}
                 style={styleTag}
-                onClick={(e) => handledOnclick(e, e.target)}
+                onClick={(e) => handledOnclick(e, node)}
             // onMouseEnter={() => console.log("Mouse Enter")}
             // onMouseLeave={() => console.log("Mouse Leave")}
             >{processNodes(node.children, transform)}</node.name>

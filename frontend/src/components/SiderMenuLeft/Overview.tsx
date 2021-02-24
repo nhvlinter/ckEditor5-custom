@@ -155,6 +155,7 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     const [tag, setTag] = useState("");
     const [valueTag, setValueTag] = useState(0);
     const [nodeData, setNodeData] = useState(null);
+    const [expandedId, setExpandedId] = useState([]);
 
     const handleClickOpen = (nodeData) => {
         sOverview.init();
@@ -204,10 +205,12 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
 
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
+            let reactIdNode = node.attribs.reactid;
             return (
                 <TreeView
                     defaultCollapseIcon={<ExpandMoreIcon />}
                     defaultExpandIcon={<ChevronRightIcon />}
+                    expanded={sCKEditor.reactIds}
                 >
                     <TreeItem
                         classes={{
@@ -217,7 +220,8 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
                             group: classes.group,
                             label: classes.label,
                         }}
-                        nodeId={index}
+                        nodeId={node.attribs.reactid}
+                        style={sCKEditor.reactId != null && sCKEditor.reactId == reactIdNode ? { backgroundColor: 'red' } : {}}
                         label={<div className={classes.labelRoot} >
                             {node.name}
                             <Box ml={3} />
@@ -232,6 +236,7 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
             );
         }
     }
+
 
     const options = {
         decodeEntities: true,
@@ -435,7 +440,6 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
     useEffect(() => {
         if (node != null) {
             showCodeHTML(node);
-            console.log(codeHtml);
             setHtml(codeHtml);
         }
     }, [node]);

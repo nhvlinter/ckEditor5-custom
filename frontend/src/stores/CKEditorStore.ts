@@ -11,20 +11,21 @@ export class CKEditorStore {
     @observable data: string = "";
     @observable dataChanges: string = "";
     @observable ckeditor: CKEditor;
-    @observable node = null;
+    @observable reactId = null;
     @observable treeViewDataStore: TreeViewDataStore = new TreeViewDataStore();
-
+    @observable reactIds = [];
     constructor(private store: BaseStore) {
         this.ckeditor = new CKEditor();
         this.treeViewDataStore = new TreeViewDataStore();
-        this.node = null;
+        this.reactId = null;
+        this.reactIds = [];
     }
     @action set_data = (v: string) => {
         const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;
         this.data = v.replaceAll(emptyParagraphRegexp, "");
     }
     @action set_dataChanges = (v: string) => { this.dataChanges = v; }
-    @action set_node = (v:any) => {this.node = v};
+    @action set_reactId = (v: any) => { this.reactId = v };
     @action async init() {
         // this.set_data(`<div style="color:red" onclick="alert('hello DIV')" preset="div tag">This is DIV</div>
         // <div style="color:blue" preset="div tag">This is DIV 2</div>
@@ -85,10 +86,11 @@ export class CKEditorStore {
 
     @action async saveDataChanged(data) {
         const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;
-        data = data.replaceAll(emptyParagraphRegexp, "");
+        let dataHtml = await this.removeReactIdToAllTag(data);
+        dataHtml = dataHtml.replaceAll(emptyParagraphRegexp, "");
         let ckeditor = new CKEditor();
         ckeditor.set_id("editor");
-        ckeditor.set_content(data);
+        ckeditor.set_content(dataHtml);
         await CKEditor.save(ckeditor);
         this.init();
     }
@@ -97,12 +99,37 @@ export class CKEditorStore {
         let idTemp = 1;
         let dataHtml = ReactHtmlParser(data, {
             transform(node) {
-                if(node.name != null && node.name != undefined) {
+                if (node.name != null && node.name != undefined) {
                     node.attribs.reactid = idTemp;
-                    idTemp ++;
+                    idTemp++;
                 }
             }
         });
         return renderToString(dataHtml);
+    }
+
+    @action async removeReactIdToAllTag(data) {
+        let dataHtml = ReactHtmlParser(data, {
+            transform(node) {
+                if (node.name != null && node.name != undefined) {
+                    if (node.attribs.reactid != null && node.attribs.reactid != undefined) {
+                        delete node.attribs.reactid;
+                    }
+                }
+            }
+        });
+        return renderToString(dataHtml);
+    }
+
+    @action async findAllReactIdsOfNode(node) {
+        if (node != null && node.name != undefined && node.name != null) {
+            if (node.attribs.reactid != undefined && node.attribs.reactid != null) {
+                this.reactIds.push(node.attribs.reactid);
+                if (node.parent != null) {
+                    await this.findAllReactIdsOfNode(node.parent);
+                }
+            }
+        }
+
     }
 }
