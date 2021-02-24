@@ -113,9 +113,12 @@ export const HomePage: FC<{}> = observer(({ }) => {
         setEditMode(!editMode);
     }, [editMode])
 
-    function handledOnclick() {
-        console.log("Hello World");
-    }
+    const handledOnclick = useCallback((e, node) => {
+        if (node != null) {
+            console.log("Node name: " + node.name);
+            e.stopPropagation();
+        }
+    },[sCKEditor]);
 
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
@@ -135,10 +138,9 @@ export const HomePage: FC<{}> = observer(({ }) => {
             return <node.name
                 {...node.attribs}
                 style={styleTag}
-                key={index}
-                onClick={handledOnclick}
-                onMouseEnter={() => console.log("Mouse Enter")}
-                onMouseLeave={() => console.log("Mouse Leave")}
+                onClick={(e) => handledOnclick(e, e.target)}
+            // onMouseEnter={() => console.log("Mouse Enter")}
+            // onMouseLeave={() => console.log("Mouse Leave")}
             >{processNodes(node.children, transform)}</node.name>
         }
     }

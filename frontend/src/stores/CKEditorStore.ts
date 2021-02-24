@@ -3,20 +3,28 @@ import { BaseStore } from "./BaseStore";
 import { TreeViewDataStore } from "./TreeViewDataStore";
 import { aFetch } from "../services/api/fetch";
 import { CKEditor } from "../models/CKEditor";
+import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
+import { transform } from "lodash-es";
+import { renderToString } from 'react-dom/server'
+
 export class CKEditorStore {
     @observable data: string = "";
     @observable dataChanges: string = "";
     @observable ckeditor: CKEditor;
+    @observable node = null;
     @observable treeViewDataStore: TreeViewDataStore = new TreeViewDataStore();
+
     constructor(private store: BaseStore) {
         this.ckeditor = new CKEditor();
         this.treeViewDataStore = new TreeViewDataStore();
+        this.node = null;
     }
     @action set_data = (v: string) => {
         const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;
         this.data = v.replaceAll(emptyParagraphRegexp, "");
     }
     @action set_dataChanges = (v: string) => { this.dataChanges = v; }
+    @action set_node = (v:any) => {this.node = v};
     @action async init() {
         // this.set_data(`<div style="color:red" onclick="alert('hello DIV')" preset="div tag">This is DIV</div>
         // <div style="color:blue" preset="div tag">This is DIV 2</div>
@@ -54,7 +62,10 @@ export class CKEditorStore {
         //TODO: GET API
         const [err, dataGet] = await CKEditor.get();
         if (!err && dataGet) {
-            this.set_data(dataGet);
+            // this.set_data(dataGet);
+            let dataHtml = this.addReactIdToAllTag(dataGet);
+            dataHtml = dataHtml.replaceAll(">", ">\n");
+            this.set_data(dataHtml);
         }
     }
 
@@ -80,5 +91,18 @@ export class CKEditorStore {
         ckeditor.set_content(data);
         await CKEditor.save(ckeditor);
         this.init();
+    }
+
+    @action addReactIdToAllTag(data) {
+        let idTemp = 1;
+        let dataHtml = ReactHtmlParser(data, {
+            transform(node) {
+                if(node.name != null && node.name != undefined) {
+                    node.attribs.reactid = idTemp;
+                    idTemp ++;
+                }
+            }
+        });
+        return renderToString(dataHtml);
     }
 }

@@ -90,7 +90,7 @@ export class OverviewStore {
         let attrTemp = Object.entries(attrs);
         for (let i = 0; i < attrTemp.length; i++) {
             let key = attrTemp[i][0];
-            if (key != 'class') {
+            if (key != 'class' && key != 'reactid') {
                 let index = this.attributes.findIndex(x => x.get_key() == key);
                 if (index >= 0) {
                     this.attributes[index].set_value(attrTemp[i][1]);
