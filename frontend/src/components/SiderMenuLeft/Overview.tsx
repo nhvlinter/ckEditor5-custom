@@ -172,100 +172,34 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     };
 
     const updatedAttr2Server = () => {
+        let reactIdNodeData = nodeData.attribs.reactid;
         if (nodeData != null) {
             let dataHtml = ReactHtmlParser(sCKEditor.data, {
                 transform(node) {
-                    if (isEqualNode(node, nodeData)) {
-                        if (sOverview.classes.length > 0) {
-                            let classes = "";
-                            for (let i = 0; i < sOverview.classes.length; i++) {
-                                classes += sOverview.classes[i] + " ";
+                    if (node.name != undefined && node.name != null) {
+                        let reactIdNode = node.attribs.reactid;
+                        if (reactIdNode == reactIdNodeData) {
+                            if (sOverview.classes.length > 0) {
+                                let classes = "";
+                                for (let i = 0; i < sOverview.classes.length; i++) {
+                                    classes += sOverview.classes[i] + " ";
+                                }
+                                node.attribs.class = classes;
                             }
-                            node.attribs.class = classes;
-                        }
-                        if (sOverview.attributes.length > 0) {
-                            for (let i = 0; i < sOverview.attributes.length; i++) {
-                                node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
+                            if (sOverview.attributes.length > 0) {
+                                for (let i = 0; i < sOverview.attributes.length; i++) {
+                                    node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
+                                }
                             }
                         }
                     }
+
                 }
             });
             let dataSaved = renderToString(dataHtml);
             sCKEditor.saveDataChanged(dataSaved);
             setOpen(false);
         }
-    }
-
-    function isEqualNode(oneNode, twoNode) {
-        let flag = true;
-        if (oneNode.children != undefined && twoNode.children == undefined) {
-            return false;
-        }
-        if (oneNode.children == undefined && twoNode.children != undefined) {
-            return false;
-        }
-        if (oneNode.children != undefined && twoNode.children != undefined) {
-            if (oneNode.children.length != twoNode.children.length) {
-                return false;
-            }
-        }
-        if (oneNode.name != twoNode.name) {
-            return false;
-        }
-        if (oneNode.attribs != undefined && twoNode.attribs == undefined) {
-            return false;
-        }
-        if (oneNode.attribs == undefined && twoNode.attribs != undefined) {
-            return false;
-        }
-        if (oneNode.attribs != undefined && twoNode.attribs != undefined) {
-            let oneAttr = Object.entries(oneNode.attribs);
-            let twoAttr = Object.entries(twoNode.attribs);
-            if (oneAttr.length != twoAttr.length) {
-                return false;
-            } else {
-                let count = 0;
-                for (let i = 0; i < oneAttr.length; i++) {
-                    for (let j = 0; j < twoAttr.length; j++) {
-                        if (oneAttr[i][0] == twoAttr[j][0] && oneAttr[i][1] == twoAttr[j][1]) {
-                            count++;
-                        }
-                    }
-                }
-                if (oneAttr.length != count) {
-                    return false;
-                }
-            }
-        }
-        if (oneNode.parent != undefined && twoNode.parent == undefined) {
-            return false;
-        }
-        if (oneNode.parent == undefined && twoNode.parent != undefined) {
-            return false;
-        }
-        // if(oneNode.parent != undefined && twoNode.parent != undefined) {
-        //     return isEqualNode(oneNode.parent, twoNode.parent);
-        // }
-        if (oneNode.prev != undefined && twoNode.prev == undefined) {
-            return false;
-        }
-        if (oneNode.prev == undefined && twoNode.prev != undefined) {
-            return false;
-        }
-        // if(oneNode.prev != undefined && twoNode.prev != undefined) {
-        //     return isEqualNode(oneNode.prev, twoNode.prev);
-        // }
-        if (oneNode.next != undefined && twoNode.next == undefined) {
-            return false;
-        }
-        if (oneNode.next == undefined && twoNode.next != undefined) {
-            return false;
-        }
-        // if(oneNode.next != undefined && twoNode.next != undefined) {
-        //     return isEqualNode(oneNode.next, twoNode.next);
-        // }
-        return true;
     }
 
     function transform(node, index) {
@@ -499,7 +433,7 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
     const [html, setHtml] = useState("");
     let codeHtml = "";
     useEffect(() => {
-        if(node != null) {
+        if (node != null) {
             showCodeHTML(node);
             console.log(codeHtml);
             setHtml(codeHtml);
@@ -507,31 +441,31 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
     }, [node]);
 
     function showCodeHTML(nodeData) {
-        if(nodeData.name != undefined && nodeData.name != null) {
+        if (nodeData.name != undefined && nodeData.name != null) {
             let attributes = "";
-            if(nodeData.attribs != undefined && nodeData.attribs != null) {
+            if (nodeData.attribs != undefined && nodeData.attribs != null) {
                 let attrTemps = Object.entries(nodeData.attribs);
-                for(let i = 0; i < attrTemps.length; i++) {
+                for (let i = 0; i < attrTemps.length; i++) {
                     attributes += attrTemps[i].toString().replace(",", "=") + " ";
                 }
             }
-            if(attributes != "") {
+            if (attributes != "") {
                 codeHtml += "<" + nodeData.name + " " + attributes.trim() + ">\n";
             } else {
                 codeHtml += "<" + nodeData.name + ">\n";
             }
-            if(nodeData.children != undefined && nodeData.children != null && nodeData.children.length > 0) {
-                for(let i = 0; i < nodeData.children.length; i++) {
-                    if(nodeData.children[i].data != undefined && nodeData.children[i].data != null) {
+            if (nodeData.children != undefined && nodeData.children != null && nodeData.children.length > 0) {
+                for (let i = 0; i < nodeData.children.length; i++) {
+                    if (nodeData.children[i].data != undefined && nodeData.children[i].data != null) {
                         codeHtml += nodeData.children[i].data;
                     }
-                    
+
                     showCodeHTML(nodeData.children[i]);
                 }
             }
             codeHtml += "</" + nodeData.name + ">";
         }
-        
+
     }
 
     return (value == index && (

@@ -63,7 +63,7 @@ export class CKEditorStore {
         const [err, dataGet] = await CKEditor.get();
         if (!err && dataGet) {
             // this.set_data(dataGet);
-            let dataHtml = this.addReactIdToAllTag(dataGet);
+            let dataHtml = await this.addReactIdToAllTag(dataGet);
             dataHtml = dataHtml.replaceAll(">", ">\n");
             this.set_data(dataHtml);
         }
@@ -93,7 +93,7 @@ export class CKEditorStore {
         this.init();
     }
 
-    @action addReactIdToAllTag(data) {
+    @action async addReactIdToAllTag(data) {
         let idTemp = 1;
         let dataHtml = ReactHtmlParser(data, {
             transform(node) {
