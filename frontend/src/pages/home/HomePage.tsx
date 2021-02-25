@@ -54,6 +54,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [openDialog, setOpenDialog] = React.useState(false);
     const [editMode, setEditMode] = React.useState(false);
     const [mouseMove, setMouseMove] = React.useState(false);
+    const [reactIdMove, setReactIdMove] = React.useState(0);
     // const { enqueueSnackbar } = useSnackbar();
     useEffect(() => {
         sCKEditor.init();
@@ -105,7 +106,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
         sCKEditor.save().then(result => {
             sCKEditor.init();
             setOpenDialogAction(false);
-            // window.location.href = "/";
         })
     }, [sCKEditor]);
 
@@ -113,12 +113,31 @@ export const HomePage: FC<{}> = observer(({ }) => {
         setEditMode(!editMode);
     }, [editMode])
 
-    function handledOnclick() {
-        console.log("Hello World");
-    }
+    const handledOnclick = useCallback((e, node) => {
+        if (node != null) {
+            sCKEditor.set_reactId(node.attribs.reactid);
+            sCKEditor.findAllReactIdsOfNode(node);
+            e.stopPropagation();
+        }
+    }, [sCKEditor]);
+
+    const handleOnMouseEnter = useCallback((e, node) => {
+        if (node != null) {
+            setReactIdMove(node.attribs.reactid);
+            e.stopPropagation();
+        }
+    }, [reactIdMove]);
+
+    const handleOnMouseLeave = useCallback((e, node) => {
+        if (node != null) {
+            setReactIdMove(0);
+            e.stopPropagation();
+        }
+    }, [reactIdMove]);
 
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
+            let reactIdNode = node.attribs.reactid;
             let styleTag = {};
             if (node.attribs.style != undefined) {
                 let style = node.attribs.style;
@@ -132,13 +151,15 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     }
                 }
             }
+            if(reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
+                styleTag['outline'] = "2px solid blue";
+            }
             return <node.name
                 {...node.attribs}
                 style={styleTag}
-                key={index}
-                onClick={handledOnclick}
-                onMouseEnter={() => console.log("Mouse Enter")}
-                onMouseLeave={() => console.log("Mouse Leave")}
+                onClick={(e) => handledOnclick(e, node)}
+                onMouseEnter ={(e) => handleOnMouseEnter(e, node)}
+                onMouseLeave ={(e) => handleOnMouseLeave(e, node)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
