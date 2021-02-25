@@ -462,7 +462,10 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
             if (nodeData.attribs != undefined && nodeData.attribs != null) {
                 let attrTemps = Object.entries(nodeData.attribs);
                 for (let i = 0; i < attrTemps.length; i++) {
-                    attributes += attrTemps[i].toString().replace(",", "=") + " ";
+                    if(attrTemps[i][0] != 'reactid') {
+                        attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                    }
+                    
                 }
             }
             if (attributes != "") {
