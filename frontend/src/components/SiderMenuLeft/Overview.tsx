@@ -203,6 +203,16 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
         }
     }
 
+    const handledLabelTreeViewClick = useCallback((e, reactId) => {
+        e.preventDefault();
+        sCKEditor.set_reactId(reactId);
+    },[sCKEditor]);
+
+    const handledOnclickTreeItem = useCallback((e, node) => {
+        e.preventDefault();
+        sCKEditor.findAllReactIdsOfNode(node);
+    },[sCKEditor]);
+
     function transform(node, index) {
         if (node.name != undefined && node.name != null) {
             let reactIdNode = node.attribs.reactid;
@@ -221,7 +231,7 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
                             label: classes.label,
                         }}
                         nodeId={node.attribs.reactid}
-                        style={sCKEditor.reactId != null && sCKEditor.reactId == reactIdNode ? { backgroundColor: 'red' } : {}}
+                        style={sCKEditor.reactId == reactIdNode ? { color: 'red' } : {}}
                         label={<div className={classes.labelRoot} >
                             {node.name}
                             <Box ml={3} />
@@ -229,6 +239,8 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
                                 onClick={() => handleClickOpen(node)}
                             />
                         </div>}
+                        onLabelClick={(e) => handledLabelTreeViewClick(e,node.attribs.reactid)}
+                        onClick = {(e) => handledOnclickTreeItem(e, node)}
                     >
                         {node.children.length != 1 && processNodes(node.children, transform)}
                     </TreeItem>
@@ -450,7 +462,10 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
             if (nodeData.attribs != undefined && nodeData.attribs != null) {
                 let attrTemps = Object.entries(nodeData.attribs);
                 for (let i = 0; i < attrTemps.length; i++) {
-                    attributes += attrTemps[i].toString().replace(",", "=") + " ";
+                    if(attrTemps[i][0] != 'reactid') {
+                        attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                    }
+                    
                 }
             }
             if (attributes != "") {

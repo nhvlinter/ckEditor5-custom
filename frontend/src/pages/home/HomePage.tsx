@@ -116,7 +116,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const handledOnclick = useCallback((e, node) => {
         if (node != null) {
             sCKEditor.set_reactId(node.attribs.reactid);
-            sCKEditor.reactIds = [];
             sCKEditor.findAllReactIdsOfNode(node);
             e.stopPropagation();
         }
@@ -125,7 +124,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const handleOnMouseEnter = useCallback((e, node) => {
         if (node != null) {
             setReactIdMove(node.attribs.reactid);
-            console.log("ReactId: " + node.attribs.reactid);
             e.stopPropagation();
         }
     }, [reactIdMove]);
@@ -153,15 +151,15 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     }
                 }
             }
-            if(reactIdNode == reactIdMove) {
-                styleTag['border'] = "2px solid blue";
+            if(reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
+                styleTag['outline'] = "2px solid blue";
             }
             return <node.name
                 {...node.attribs}
                 style={styleTag}
                 onClick={(e) => handledOnclick(e, node)}
-                onMouseEnter={(e) => handleOnMouseEnter(e, node)}
-                onMouseLeave={(e) => handleOnMouseLeave(e, node)}
+                onMouseEnter ={(e) => handleOnMouseEnter(e, node)}
+                onMouseLeave ={(e) => handleOnMouseLeave(e, node)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
