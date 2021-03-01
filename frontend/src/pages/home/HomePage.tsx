@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, ReactElement, useEffect, useState, useCallback, FormEvent, MouseEvent } from 'react';
+import React, { FC, ReactNode, ReactElement, useEffect, useState, useCallback, FormEvent, MouseEvent, useRef, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useSnackbar } from 'notistack';
 import { useStore } from '../../stores';
@@ -31,7 +31,11 @@ import { BasicLayout } from '../../layouts/BasicLayout';
 import { makeStyles } from '@material-ui/core/styles';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Switch, Box } from '@material-ui/core';
 import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
-import { renderToString } from 'react-dom/server'
+import { renderToString } from 'react-dom/server';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDrag, useDrop, DropTargetMonitor } from "react-dnd";
+import { XYCoord } from "dnd-core";
 
 const useStyles = makeStyles((theme) => ({
     btn: {
@@ -46,6 +50,145 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+const DEFAULT = {
+    name: 'root',
+    acceptsNewChildren: true,
+    accepts: ['main', 'image', 'puppy', 'complex'],
+    children: [
+        {
+            name: 'red p',
+            item: 'p',
+            acceptsNewChildren: true,
+            accepts: ['puppy', 'complex'],
+            children: [
+                {
+                    item: 'span',
+                    children: ['Bye'],
+                    type: 'main',
+                    props: {
+                        style: { color: 'white', backgroundColor: 'black' },
+                    },
+                },
+            ],
+            props: {
+                style: { backgroundColor: 'red' },
+            },
+        },
+        {
+            name: 'green p',
+            item: 'p',
+            acceptsNewChildren: true,
+            accepts: ['main', 'image', 'puppy', 'complex'],
+            children: [
+                {
+                    item: 'span',
+                    children: ['Bye'],
+                    type: 'main',
+                    props: {
+                        style: { color: 'white', backgroundColor: 'black' },
+                    },
+                },
+            ],
+            props: {
+                style: { backgroundColor: 'green' },
+            },
+        },
+        {
+            name: 'blue div',
+            item: 'div',
+            acceptsNewChildren: true,
+            accepts: ['main', 'puppy', 'complex'],
+            children: [
+                {
+                    item: 'span',
+                    children: ['Bye'],
+                    type: 'main',
+                    props: {
+                        style: { color: 'white', backgroundColor: 'black' },
+                    },
+                },
+            ],
+            props: {
+                style: { backgroundColor: 'blue' },
+            },
+        },
+    ],
+};
+
+const DataContext = React.createContext({ items: DEFAULT, setItems: items => { } });
+
+function moveChild(fromObject, child, toObject) {
+    console.log("From Object: " + fromObject);
+    console.log("Children: " + child);
+    console.log("To Object: " + toObject);
+    if (!fromObject.children) return fromObject;
+    return {
+        ...fromObject,
+        children: [
+            ...fromObject.children.filter(objChild => objChild !== child).map(objChild => moveChild(objChild, child, toObject)),
+            ...(fromObject === toObject ? [child] : []),
+        ],
+    };
+}
+
+const DragContainer = ({ children, info }) => {
+    const context = useContext(DataContext);
+    const [{ hovering, shallowHovering }, drop] = useDrop({
+        accept: info.accepts || 'item',
+        drop: (item, monitor) => {
+            if (monitor.isOver({ shallow: true })) {
+                const itemInfo = monitor.getItem().info;
+                console.log({ to: info, which: itemInfo });
+                if (info.children === itemInfo || info.children.filter(c => c === itemInfo).length > 0) return;
+                if (itemInfo.source) {
+                    context.setItems(moveChild(context.items, { ...itemInfo, source: false }, info));
+                } else {
+                    context.setItems(moveChild(context.items, itemInfo, info));
+                }
+            }
+        },
+        collect: monitor => ({
+            hovering: !!monitor.isOver({ shallow: false }),
+            shallowHovering: !!monitor.isOver({ shallow: true }),
+        }),
+    });
+    return (
+        <div ref={drop} className={hovering ? (shallowHovering ? 'drag-container-shallow-hover' : 'drag-container-hover') : 'drag-container'}>
+            {children}
+        </div>
+    );
+};
+
+const Item = ({ info, toolbar }) => {
+    const { item: ItemType = null, children = null, props = null, acceptsNewChildren = false } = info || {};
+    const itemChildren = Array.isArray(children)
+        ? children.map((child, index) => (typeof child === 'string' ? child : <Item key={index} info={child} toolbar={toolbar} />))
+        : children;
+
+    const [, drag] = useDrag({
+        item: { type: info.type || 'item', info },
+        collect: monitor => ({
+            isDragging: !!monitor.isDragging(),
+        }),
+        begin: () => {
+            console.log('dragging', info);
+        },
+    });
+
+    if (ItemType == null) {
+        return toolbar ? <div>{itemChildren}</div> : <DragContainer info={info}>{itemChildren}</DragContainer>;
+    }
+
+    const Parent = acceptsNewChildren && !toolbar ? ({ children }) => <DragContainer info={info}>{children}</DragContainer> : React.Fragment;
+    return (
+        <Parent>
+            <ItemType ref={drag} {...props || {}} toolbar={toolbar}>
+                {itemChildren}
+            </ItemType>
+        </Parent>
+    );
+};
+
 export const HomePage: FC<{}> = observer(({ }) => {
     const { sCKEditor, sModal, routerStore } = useStore();
     const classes = useStyles();
@@ -55,7 +198,10 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [editMode, setEditMode] = React.useState(false);
     const [mouseMove, setMouseMove] = React.useState(false);
     const [reactIdMove, setReactIdMove] = React.useState(0);
-    // const { enqueueSnackbar } = useSnackbar();
+    const listNode = [];
+    const ref = useRef(null);
+    const startItems = useContext(DataContext);
+    const [items, setItems] = useState(startItems.items);
     useEffect(() => {
         sCKEditor.init();
     });
@@ -80,7 +226,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
     }, []);
 
     const handledAction = useCallback(() => {
-        console.log("Action " + action);
         if (action != "" && action == "reset") {
             reset();
         } else if (action != "" && action == "save") {
@@ -97,7 +242,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
             if (result != null && result != "") {
                 sCKEditor.init();
                 setOpenDialogAction(false);
-                // window.location.href = "/";
             }
         })
     }, [sCKEditor]);
@@ -151,15 +295,18 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     }
                 }
             }
-            if(reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
+            if (reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
                 styleTag['outline'] = "2px solid blue";
             }
+            listNode.push(node);
             return <node.name
                 {...node.attribs}
                 style={styleTag}
+                ref={ref}
+                draggable="true"
                 onClick={(e) => handledOnclick(e, node)}
-                onMouseEnter ={(e) => handleOnMouseEnter(e, node)}
-                onMouseLeave ={(e) => handleOnMouseLeave(e, node)}
+                onMouseEnter={(e) => handleOnMouseEnter(e, node)}
+                onMouseLeave={(e) => handleOnMouseLeave(e, node)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
@@ -172,6 +319,13 @@ export const HomePage: FC<{}> = observer(({ }) => {
     return (<BasicLayout>
         <div>
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
+            {/* <DataContext.Provider value={{ items, setItems }}>
+                <DndProvider backend={HTML5Backend}>
+                    <div className="flex-row">
+                        <Item info={items} toolbar={false} />
+                    </div>
+                </DndProvider>
+			</DataContext.Provider> */}
             <div className={classes.btn}>
                 <Button variant="contained" onClick={showDialogReset}>Reset</Button>
                 {/* <Button variant="contained" color="primary" onClick={edit} >
