@@ -36,6 +36,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDrag, useDrop, DropTargetMonitor } from "react-dnd";
 import { XYCoord } from "dnd-core";
+import update from 'immutability-helper'
 
 const useStyles = makeStyles((theme) => ({
     btn: {
@@ -50,144 +51,146 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const DEFAULT = {
-    name: 'root',
-    acceptsNewChildren: true,
-    accepts: ['main', 'image', 'puppy', 'complex'],
-    children: [
-        {
-            name: 'red p',
-            item: 'p',
-            acceptsNewChildren: true,
-            accepts: ['puppy', 'complex'],
-            children: [
-                {
-                    item: 'span',
-                    children: ['Bye'],
-                    type: 'main',
-                    props: {
-                        style: { color: 'white', backgroundColor: 'black' },
-                    },
-                },
-            ],
-            props: {
-                style: { backgroundColor: 'red' },
-            },
+const ITEMS = [
+    {
+        id: 1,
+        text: 'Write a cool JS library',
+        name: 'h1',
+        props: {
+            style: { backgroundColor: 'green' },
         },
-        {
-            name: 'green p',
-            item: 'p',
-            acceptsNewChildren: true,
-            accepts: ['main', 'image', 'puppy', 'complex'],
-            children: [
-                {
-                    item: 'span',
-                    children: ['Bye'],
-                    type: 'main',
-                    props: {
-                        style: { color: 'white', backgroundColor: 'black' },
-                    },
-                },
-            ],
-            props: {
-                style: { backgroundColor: 'green' },
-            },
-        },
-        {
-            name: 'blue div',
-            item: 'div',
-            acceptsNewChildren: true,
-            accepts: ['main', 'puppy', 'complex'],
-            children: [
-                {
-                    item: 'span',
-                    children: ['Bye'],
-                    type: 'main',
-                    props: {
-                        style: { color: 'white', backgroundColor: 'black' },
-                    },
-                },
-            ],
-            props: {
-                style: { backgroundColor: 'blue' },
-            },
-        },
-    ],
-};
-
-const DataContext = React.createContext({ items: DEFAULT, setItems: items => { } });
-
-function moveChild(fromObject, child, toObject) {
-    console.log("From Object: " + fromObject);
-    console.log("Children: " + child);
-    console.log("To Object: " + toObject);
-    if (!fromObject.children) return fromObject;
-    return {
-        ...fromObject,
         children: [
-            ...fromObject.children.filter(objChild => objChild !== child).map(objChild => moveChild(objChild, child, toObject)),
-            ...(fromObject === toObject ? [child] : []),
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+            },
         ],
-    };
+    },
+    {
+        id: 2,
+        text: 'Make it generic enough',
+        name: 'h2',
+        props: {
+            style: { backgroundColor: 'blue' },
+        },
+        children: [
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+            },
+        ],
+    },
+    {
+        id: 3,
+        text: 'Write README',
+        name: 'h3',
+        props: {
+            style: { backgroundColor: 'red' },
+        },
+        children: [
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+            },
+        ],
+    },
+    {
+        id: 4,
+        text: 'Create some examples',
+        name: 'h4',
+        props: {
+            style: { backgroundColor: 'yellow' },
+        },
+        children: [
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+            },
+        ],
+    },
+]
+
+export interface CardProps {
+    id: string
+    text: string
+    moveCard: (id: string, to: number) => void
+    findCard: (id: string) => { index: number }
 }
 
-const DragContainer = ({ children, info }) => {
-    const context = useContext(DataContext);
-    const [{ hovering, shallowHovering }, drop] = useDrop({
-        accept: info.accepts || 'item',
-        drop: (item, monitor) => {
-            if (monitor.isOver({ shallow: true })) {
-                const itemInfo = monitor.getItem().info;
-                console.log({ to: info, which: itemInfo });
-                if (info.children === itemInfo || info.children.filter(c => c === itemInfo).length > 0) return;
-                if (itemInfo.source) {
-                    context.setItems(moveChild(context.items, { ...itemInfo, source: false }, info));
-                } else {
-                    context.setItems(moveChild(context.items, itemInfo, info));
+interface Item {
+    type: string
+    id: string
+    originalIndex: string
+}
+
+export const Card: FC<CardProps> = ({ id, text, moveCard, name, props,children, findCard }) => {
+    const originalIndex = findCard(id).index
+    const [{ isDragging }, drag] = useDrag(
+        () => ({
+            item: { type: 'card', id, originalIndex },
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
+            end: (dropResult: unknown, monitor) => {
+                const { id: droppedId, originalIndex } = monitor.getItem()
+                const didDrop = monitor.didDrop()
+                if (!didDrop) {
+                    moveCard(droppedId, originalIndex)
                 }
+            },
+        }),
+        [id, originalIndex],
+    )
+
+    const [, drop] = useDrop(() => ({
+        accept: 'card',
+        canDrop: () => false,
+        hover({ id: draggedId }: Item) {
+            if (draggedId !== id) {
+                const { index: overIndex } = findCard(id)
+                moveCard(draggedId, overIndex)
             }
         },
-        collect: monitor => ({
-            hovering: !!monitor.isOver({ shallow: false }),
-            shallowHovering: !!monitor.isOver({ shallow: true }),
-        }),
-    });
-    return (
-        <div ref={drop} className={hovering ? (shallowHovering ? 'drag-container-shallow-hover' : 'drag-container-hover') : 'drag-container'}>
-            {children}
-        </div>
-    );
-};
+    }))
 
-const Item = ({ info, toolbar }) => {
-    const { item: ItemType = null, children = null, props = null, acceptsNewChildren = false } = info || {};
-    const itemChildren = Array.isArray(children)
-        ? children.map((child, index) => (typeof child === 'string' ? child : <Item key={index} info={child} toolbar={toolbar} />))
-        : children;
+    const opacity = isDragging ? 0 : 1;
 
-    const [, drag] = useDrag({
-        item: { type: info.type || 'item', info },
-        collect: monitor => ({
-            isDragging: !!monitor.isDragging(),
-        }),
-        begin: () => {
-            console.log('dragging', info);
-        },
-    });
-
-    if (ItemType == null) {
-        return toolbar ? <div>{itemChildren}</div> : <DragContainer info={info}>{itemChildren}</DragContainer>;
+    function transform(node, index) {
+        if (node.name != null && node.name != undefined) {
+            return <node.name
+                ref={(node) => drag(drop(node))}
+                style={{opacity }}
+                {...props}
+            >{processNodes(node.children, transform)}</node.name>
+        }
     }
 
-    const Parent = acceptsNewChildren && !toolbar ? ({ children }) => <DragContainer info={info}>{children}</DragContainer> : React.Fragment;
-    return (
-        <Parent>
-            <ItemType ref={drag} {...props || {}} toolbar={toolbar}>
-                {itemChildren}
-            </ItemType>
-        </Parent>
-    );
-};
+    const options = {
+        decodeEntities: true,
+        transform
+    };
+
+    
+    let dataReturn = "<" + name + ">" + children + "</" + name + ">";
+    return ReactHtmlParser(dataReturn, options);
+
+}
 
 export const HomePage: FC<{}> = observer(({ }) => {
     const { sCKEditor, sModal, routerStore } = useStore();
@@ -200,8 +203,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [reactIdMove, setReactIdMove] = React.useState(0);
     const listNode = [];
     const ref = useRef(null);
-    const startItems = useContext(DataContext);
-    const [items, setItems] = useState(startItems.items);
+    const [cards, setCards] = useState(ITEMS)
     useEffect(() => {
         sCKEditor.init();
     });
@@ -298,11 +300,9 @@ export const HomePage: FC<{}> = observer(({ }) => {
             if (reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
                 styleTag['outline'] = "2px solid blue";
             }
-            listNode.push(node);
             return <node.name
                 {...node.attribs}
                 style={styleTag}
-                ref={ref}
                 draggable="true"
                 onClick={(e) => handledOnclick(e, node)}
                 onMouseEnter={(e) => handleOnMouseEnter(e, node)}
@@ -316,16 +316,47 @@ export const HomePage: FC<{}> = observer(({ }) => {
         transform
     };
 
+    const moveCard = (id: string, atIndex: number) => {
+        const { card, index } = findCard(id)
+        setCards(
+            update(cards, {
+                $splice: [
+                    [index, 1],
+                    [atIndex, 0, card],
+                ],
+            }),
+        )
+    }
+
+    const findCard = (id: string) => {
+        const card = cards.filter((c) => `${c.id}` === id)[0]
+        return {
+            card,
+            index: cards.indexOf(card),
+        }
+    }
+
+    const [, drop] = useDrop(() => ({ accept: 'card' }))
+
     return (<BasicLayout>
         <div>
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
-            {/* <DataContext.Provider value={{ items, setItems }}>
-                <DndProvider backend={HTML5Backend}>
-                    <div className="flex-row">
-                        <Item info={items} toolbar={false} />
-                    </div>
-                </DndProvider>
-			</DataContext.Provider> */}
+            <>
+                <div ref={drop} >
+                    {cards.map((card) => (
+                        <Card
+                            key={card.id}
+                            id={`${card.id}`}
+                            text={card.text}
+                            moveCard={moveCard}
+                            name={card.name}
+                            props={card.props}
+                            children={card.children}
+                            findCard={findCard}
+                        />
+                    ))}
+                </div>
+            </>
             <div className={classes.btn}>
                 <Button variant="contained" onClick={showDialogReset}>Reset</Button>
                 {/* <Button variant="contained" color="primary" onClick={edit} >
@@ -425,6 +456,10 @@ export const HomePage: FC<{}> = observer(({ }) => {
     </BasicLayout>
     );
 });
+
+
+
+
 
 
 
