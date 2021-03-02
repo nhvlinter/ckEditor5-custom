@@ -7,16 +7,20 @@ import { RouterView } from './components/router/RouterView';
 
 import "./css/styles.scss";
 
-import {appViewMap} from "./routes";
+import { appViewMap } from "./routes";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 export class App extends Component {
   render() {
     return (
-      <StoreContext.Provider value={store}>
-        <Provider store={store}><>
-          <RouterView viewMap={appViewMap} />
-        </></Provider>
-      </StoreContext.Provider>
+      <DndProvider backend={HTML5Backend}>
+        <StoreContext.Provider value={store}>
+          <Provider store={store}><>
+            <RouterView viewMap={appViewMap} />
+          </></Provider>
+        </StoreContext.Provider>
+      </DndProvider>
     );
   }
 }

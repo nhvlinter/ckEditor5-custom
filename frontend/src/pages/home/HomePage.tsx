@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, ReactElement, useEffect, useState, useCallback, FormEvent, MouseEvent } from 'react';
+import React, { FC, ReactNode, ReactElement, useEffect, useState, useCallback, FormEvent, MouseEvent, useRef, useContext } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useSnackbar } from 'notistack';
 import { useStore } from '../../stores';
@@ -31,7 +31,12 @@ import { BasicLayout } from '../../layouts/BasicLayout';
 import { makeStyles } from '@material-ui/core/styles';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, Switch, Box } from '@material-ui/core';
 import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
-import { renderToString } from 'react-dom/server'
+import { renderToString } from 'react-dom/server';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDrag, useDrop, DropTargetMonitor } from "react-dnd";
+import { XYCoord } from "dnd-core";
+import update from 'immutability-helper'
 
 const useStyles = makeStyles((theme) => ({
     btn: {
@@ -46,6 +51,148 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+const ITEMS = [
+    {
+        id: 1,
+        text: 'Write a cool JS library',
+        name: 'h1',
+        props: {
+            style: { backgroundColor: 'green' },
+        },
+        children: [
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+            },
+        ],
+    },
+    {
+        id: 2,
+        text: 'Make it generic enough',
+        name: 'h2',
+        props: {
+            style: { backgroundColor: 'blue' },
+        },
+        children: [
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+            },
+        ],
+    },
+    {
+        id: 3,
+        text: 'Write README',
+        name: 'h3',
+        props: {
+            style: { backgroundColor: 'red' },
+        },
+        children: [
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+            },
+        ],
+    },
+    {
+        id: 4,
+        text: 'Create some examples',
+        name: 'h4',
+        props: {
+            style: { backgroundColor: 'yellow' },
+            class: "abcd xyz"
+        },
+        children: [
+            {
+                name: 'span',
+                children: ['Bye'],
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                    id: 1
+                },
+            },
+        ],
+    },
+]
+
+export interface CardProps {
+    id: string
+    text: string
+    name: string
+    props: Object
+    moveCard: (id: string, to: number) => void
+    findCard: (id: string) => { index: number }
+}
+
+interface Item {
+    type: string
+    id: string
+    originalIndex: string
+}
+
+export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children, findCard }) => {
+    const originalIndex = findCard(id).index
+    const [{ isDragging }, drag] = useDrag(
+        () => ({
+            item: { type: 'card', id, originalIndex },
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
+            end: (dropResult: unknown, monitor) => {
+                const { id: droppedId, originalIndex } = monitor.getItem()
+                const didDrop = monitor.didDrop()
+                if (!didDrop) {
+                    moveCard(droppedId, originalIndex)
+                }
+            },
+        }),
+        [id, originalIndex],
+    )
+
+    const [, drop] = useDrop(() => ({
+        accept: 'card',
+        canDrop: () => false,
+        hover({ id: draggedId }: Item) {
+            if (draggedId !== id) {
+                const { index: overIndex } = findCard(id)
+                moveCard(draggedId, overIndex)
+            }
+        },
+    }))
+
+    const opacity = isDragging ? 0 : 1;
+
+    function transform(node, index) {
+        if (node.name != null && node.name != undefined) {
+            return <node.name
+                ref={(node) => drag(drop(node))}
+                {...JSON.parse(node.attribs.props)}
+            >{processNodes(node.children, transform)}</node.name>
+        }
+    }
+
+    const options = {
+        decodeEntities: true,
+        transform
+    };
+    let dataReturn = "<" + name + " " + "props='" + JSON.stringify(props) +"'" + ">" + text + "</" + name + ">";
+    return ReactHtmlParser(dataReturn, options);
+
+}
+
 export const HomePage: FC<{}> = observer(({ }) => {
     const { sCKEditor, sModal, routerStore } = useStore();
     const classes = useStyles();
@@ -55,7 +202,9 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [editMode, setEditMode] = React.useState(false);
     const [mouseMove, setMouseMove] = React.useState(false);
     const [reactIdMove, setReactIdMove] = React.useState(0);
-    // const { enqueueSnackbar } = useSnackbar();
+    const listNode = [];
+    const ref = useRef(null);
+    const [cards, setCards] = useState(ITEMS)
     useEffect(() => {
         sCKEditor.init();
     });
@@ -80,7 +229,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
     }, []);
 
     const handledAction = useCallback(() => {
-        console.log("Action " + action);
         if (action != "" && action == "reset") {
             reset();
         } else if (action != "" && action == "save") {
@@ -97,7 +245,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
             if (result != null && result != "") {
                 sCKEditor.init();
                 setOpenDialogAction(false);
-                // window.location.href = "/";
             }
         })
     }, [sCKEditor]);
@@ -151,15 +298,16 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     }
                 }
             }
-            if(reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
+            if (reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
                 styleTag['outline'] = "2px solid blue";
             }
             return <node.name
                 {...node.attribs}
                 style={styleTag}
+                draggable="true"
                 onClick={(e) => handledOnclick(e, node)}
-                onMouseEnter ={(e) => handleOnMouseEnter(e, node)}
-                onMouseLeave ={(e) => handleOnMouseLeave(e, node)}
+                onMouseEnter={(e) => handleOnMouseEnter(e, node)}
+                onMouseLeave={(e) => handleOnMouseLeave(e, node)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
@@ -169,9 +317,47 @@ export const HomePage: FC<{}> = observer(({ }) => {
         transform
     };
 
+    const moveCard = (id: string, atIndex: number) => {
+        const { card, index } = findCard(id)
+        setCards(
+            update(cards, {
+                $splice: [
+                    [index, 1],
+                    [atIndex, 0, card],
+                ],
+            }),
+        )
+    }
+
+    const findCard = (id: string) => {
+        const card = cards.filter((c) => `${c.id}` === id)[0]
+        return {
+            card,
+            index: cards.indexOf(card),
+        }
+    }
+
+    const [, drop] = useDrop(() => ({ accept: 'card' }))
+
     return (<BasicLayout>
         <div>
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
+            <>
+                <div ref={drop} >
+                    {cards.map((card) => (
+                        <Card
+                            key={card.id}
+                            id={`${card.id}`}
+                            text={card.text}
+                            moveCard={moveCard}
+                            name={card.name}
+                            props={card.props}
+                            children={card.children}
+                            findCard={findCard}
+                        />
+                    ))}
+                </div>
+            </>
             <div className={classes.btn}>
                 <Button variant="contained" onClick={showDialogReset}>Reset</Button>
                 {/* <Button variant="contained" color="primary" onClick={edit} >
@@ -271,6 +457,10 @@ export const HomePage: FC<{}> = observer(({ }) => {
     </BasicLayout>
     );
 });
+
+
+
+
 
 
 
