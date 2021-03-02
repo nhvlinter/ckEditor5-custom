@@ -11,11 +11,25 @@ export class TagData {
     constructor(data?: any) {
         if (data != null) {
             const {children, ...pData } = data;
-            Object.assign(this, data);
+            Object.assign(this, pData);
+            if(children) {
+                this.children = children.map((x:any) => new TagData(x));
+            }
+            if(this.children == null ) {
+                this.children = [];
+            }
         }
     }
 
     @action set_id = (v: string) => { this.id = v }
     @action set_content = (v: string) => { this.content = v }
     @action set_name = (v: string) => { this.name = v }
+    @action set_children = (v: TagData[] | null) => {
+        if(!v) {
+            this.children = [];
+        } else {
+            this.children = v.map(x => x);
+        }
+    }
+    @action set_props = (v: Object) => { this.props = v }
 }

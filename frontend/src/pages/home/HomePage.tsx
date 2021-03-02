@@ -112,6 +112,7 @@ const ITEMS = [
         name: 'h4',
         props: {
             style: { backgroundColor: 'yellow' },
+            class: "abcd xyz"
         },
         children: [
             {
@@ -120,6 +121,7 @@ const ITEMS = [
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
+                    id: 1
                 },
             },
         ],
@@ -129,6 +131,8 @@ const ITEMS = [
 export interface CardProps {
     id: string
     text: string
+    name: string
+    props: Object
     moveCard: (id: string, to: number) => void
     findCard: (id: string) => { index: number }
 }
@@ -139,7 +143,7 @@ interface Item {
     originalIndex: string
 }
 
-export const Card: FC<CardProps> = ({ id, text, moveCard, name, props,children, findCard }) => {
+export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children, findCard }) => {
     const originalIndex = findCard(id).index
     const [{ isDragging }, drag] = useDrag(
         () => ({
@@ -175,8 +179,7 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props,children, 
         if (node.name != null && node.name != undefined) {
             return <node.name
                 ref={(node) => drag(drop(node))}
-                style={{opacity }}
-                {...props}
+                {...JSON.parse(node.attribs.props)}
             >{processNodes(node.children, transform)}</node.name>
         }
     }
@@ -185,9 +188,7 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props,children, 
         decodeEntities: true,
         transform
     };
-
-    
-    let dataReturn = "<" + name + ">" + children + "</" + name + ">";
+    let dataReturn = "<" + name + " " + "props='" + JSON.stringify(props) +"'" + ">" + text + "</" + name + ">";
     return ReactHtmlParser(dataReturn, options);
 
 }
