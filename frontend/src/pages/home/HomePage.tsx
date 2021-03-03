@@ -59,14 +59,17 @@ const ITEMS = [
         props: {
             style: { backgroundColor: 'green' },
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Bye 1',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                 },
+                id: 5,
+                level: 2,
             },
         ],
     },
@@ -77,14 +80,17 @@ const ITEMS = [
         props: {
             style: { backgroundColor: 'blue' },
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Bye 2',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                 },
+                id: 6,
+                level: 2,
             },
         ],
     },
@@ -95,14 +101,17 @@ const ITEMS = [
         props: {
             style: { backgroundColor: 'red' },
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Bye 3',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                 },
+                id: 7,
+                level: 2,
             },
         ],
     },
@@ -114,15 +123,18 @@ const ITEMS = [
             style: { backgroundColor: 'yellow' },
             class: "abcd xyz"
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Bye 4',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                     id: 1
                 },
+                id: 8,
+                level: 2,
             },
         ],
     },
@@ -154,6 +166,7 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
             end: (dropResult: unknown, monitor) => {
                 const { id: droppedId, originalIndex } = monitor.getItem()
                 const didDrop = monitor.didDrop()
+                console.log("Id drag: " + droppedId);
                 if (!didDrop) {
                     moveCard(droppedId, originalIndex)
                 }
@@ -188,8 +201,35 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
         decodeEntities: true,
         transform
     };
-    let dataReturn = "<" + name + " " + "props='" + JSON.stringify(props) +"'" + ">" + text + "</" + name + ">";
-    return ReactHtmlParser(dataReturn, options);
+    let dataReturn = "";
+    if (children != undefined && children != null) {
+        dataReturn = "<" + name + " " + "props='" + JSON.stringify(props) + "'" + ">" +
+            "<" + children[0].name + " " + "props='" + JSON.stringify(children[0].props) + "'" + ">" +
+            children[0].text +
+            "</" + children[0].name + ">"
+            + "</" + name + ">";
+    }
+    // return ReactHtmlParser(dataReturn, options);
+    if (children != undefined && children != null) {
+        return (
+            <div ref={(node) => drag(drop(node))} style={{backgroundColor: 'red'}}>
+                {text}
+                <Card
+                    id={`${children[0].id}`}
+                    text={children[0].text}
+                    moveCard={moveCard}
+                    name={children[0].name}
+                    props={children[0].props}
+                    children={null}
+                    findCard={findCard}
+                />
+            </div>
+        )
+    } else {
+        return (<span ref={(node) => drag(drop(node))} style={{backgroundColor: 'blue'}}>
+            {text}
+        </span>)
+    }
 
 }
 
@@ -329,15 +369,51 @@ export const HomePage: FC<{}> = observer(({ }) => {
         )
     }
 
-    const findCard = (id: string) => {
-        const card = cards.filter((c) => `${c.id}` === id)[0]
-        return {
-            card,
-            index: cards.indexOf(card),
+    function findCardById(cardArray, id) {
+        if(cardArray.length > 0 ) {
+            for(let i = 0; i < cardArray.length; i++) {
+                if(cardArray[i].id == id) {
+                    return {
+                        card: cardArray[i],
+                        index: i,
+                        level: cardArray[i].level,
+                    }
+                } else {
+                    if(cardArray[i].children != null && cardArray[i].children.length > 0) {
+                        return findCardById(cardArray[i].children, id);
+                    }
+                }
+            }
         }
+        return null;
+    }
+
+    const findCard = (id: string) => {
+        // const card = cards.filter((c) => `${c.id}` === id)[0]
+        // return {
+        //     card,
+        //     index: cards.indexOf(card),
+        // }
+        const result = findCardById(cards, id);
+        if(result != null) {
+            return {
+                card: result.card,
+                index: result.index,
+                level: result.level,
+            };
+        } else {
+            return {
+                card: null,
+                index: 0,
+                level: 0,
+            };
+        }
+        
     }
 
     const [, drop] = useDrop(() => ({ accept: 'card' }))
+
+
 
     return (<BasicLayout>
         <div>
@@ -346,7 +422,6 @@ export const HomePage: FC<{}> = observer(({ }) => {
                 <div ref={drop} >
                     {cards.map((card) => (
                         <Card
-                            key={card.id}
                             id={`${card.id}`}
                             text={card.text}
                             moveCard={moveCard}
