@@ -59,14 +59,27 @@ const ITEMS = [
         props: {
             style: { backgroundColor: 'green' },
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Tag 1a',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                 },
+                id: 5,
+                level: 2,
+            },
+            {
+                name: 'span',
+                text: 'Tag 1b',
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+                id: 15,
+                level: 2,
             },
         ],
     },
@@ -77,14 +90,27 @@ const ITEMS = [
         props: {
             style: { backgroundColor: 'blue' },
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Tag 2a',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                 },
+                id: 6,
+                level: 2,
+            },
+            {
+                name: 'span',
+                text: 'Tag 2b',
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+                id: 16,
+                level: 2,
             },
         ],
     },
@@ -95,14 +121,27 @@ const ITEMS = [
         props: {
             style: { backgroundColor: 'red' },
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Tag 3a',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                 },
+                id: 7,
+                level: 2,
+            },
+            {
+                name: 'span',
+                text: 'Tag 3b',
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                },
+                id: 17,
+                level: 2,
             },
         ],
     },
@@ -114,15 +153,29 @@ const ITEMS = [
             style: { backgroundColor: 'yellow' },
             class: "abcd xyz"
         },
+        level: 1,
         children: [
             {
                 name: 'span',
-                children: ['Bye'],
+                text: 'Tag 4a',
                 type: 'main',
                 props: {
                     style: { color: 'white', backgroundColor: 'black' },
                     id: 1
                 },
+                id: 8,
+                level: 2,
+            },
+            {
+                name: 'span',
+                text: 'Tag 4b',
+                type: 'main',
+                props: {
+                    style: { color: 'white', backgroundColor: 'black' },
+                    id: 1
+                },
+                id: 18,
+                level: 2,
             },
         ],
     },
@@ -133,8 +186,9 @@ export interface CardProps {
     text: string
     name: string
     props: Object
-    moveCard: (id: string, to: number) => void
+    moveCard: (id: string, to: number, idDest: string) => void
     findCard: (id: string) => { index: number }
+    children: []
 }
 
 interface Item {
@@ -155,7 +209,7 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
                 const { id: droppedId, originalIndex } = monitor.getItem()
                 const didDrop = monitor.didDrop()
                 if (!didDrop) {
-                    moveCard(droppedId, originalIndex)
+                    moveCard(droppedId, originalIndex, id);
                 }
             },
         }),
@@ -168,28 +222,55 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
         hover({ id: draggedId }: Item) {
             if (draggedId !== id) {
                 const { index: overIndex } = findCard(id)
-                moveCard(draggedId, overIndex)
+                moveCard(draggedId, overIndex, id);
             }
         },
     }))
 
-    const opacity = isDragging ? 0 : 1;
+    // function transform(node, index) {
+    //     if (node.name != null && node.name != undefined) {
+    //         return <node.name
+    //             ref={(node) => drag(drop(node))}
+    //             {...JSON.parse(node.attribs.props)}
+    //         >{processNodes(node.children, transform)}</node.name>
+    //     }
+    // }
 
-    function transform(node, index) {
-        if (node.name != null && node.name != undefined) {
-            return <node.name
-                ref={(node) => drag(drop(node))}
-                {...JSON.parse(node.attribs.props)}
-            >{processNodes(node.children, transform)}</node.name>
-        }
+    // const options = {
+    //     decodeEntities: true,
+    //     transform
+    // };
+    let dataReturn = "";
+    // if (children != undefined && children != null) {
+    //     dataReturn = "<" + name + " " + "props='" + JSON.stringify(props) + "'" + ">" +
+    //         "<" + children[0].name + " " + "props='" + JSON.stringify(children[0].props) + "'" + ">" +
+    //         children[0].text +
+    //         "</" + children[0].name + ">"
+    //         + "</" + name + ">";
+    // }
+    // return ReactHtmlParser(dataReturn, options);
+    if (children != null && children.length > 0) {
+        return (
+            <div ref={(node) => drag(drop(node))} style={{ backgroundColor: 'red', padding: '10px', margin: '5px' }}>
+                {text}
+                {children.map(item => item != null &&
+                    <Card
+                        id={item.id}
+                        text={item.text}
+                        moveCard={moveCard}
+                        name={item.name}
+                        props={item.props}
+                        children={item.children}
+                        findCard={findCard}
+                    />)}
+
+            </div>
+        )
+    } else {
+        return (<span ref={(node) => drag(drop(node))} style={{ backgroundColor: 'blue', color: 'white', padding: '10px', margin: '5px' }}>
+            {text}
+        </span>)
     }
-
-    const options = {
-        decodeEntities: true,
-        transform
-    };
-    let dataReturn = "<" + name + " " + "props='" + JSON.stringify(props) +"'" + ">" + text + "</" + name + ">";
-    return ReactHtmlParser(dataReturn, options);
 
 }
 
@@ -317,37 +398,108 @@ export const HomePage: FC<{}> = observer(({ }) => {
         transform
     };
 
-    const moveCard = (id: string, atIndex: number) => {
-        const { card, index } = findCard(id)
-        setCards(
-            update(cards, {
-                $splice: [
-                    [index, 1],
-                    [atIndex, 0, card],
-                ],
-            }),
-        )
-    }
+    let flagRemove = false;
 
-    const findCard = (id: string) => {
-        const card = cards.filter((c) => `${c.id}` === id)[0]
-        return {
-            card,
-            index: cards.indexOf(card),
+    function removeElement(cardArray, id) {
+        if (cardArray.length > 0) {
+            for (let i = 0; !flagRemove && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == id) {
+                    cardArray.splice(i, 1);
+                    flagRemove = true;
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && cardArray[i].children != undefined && !flagRemove) {
+                        removeElement(cardArray[i].children, id);
+                    }
+                }
+            }
         }
     }
 
+    let flagAdd = false;
+
+    function addElement(cardArray, card, idDest, atIndex, level) {
+        if (cardArray.length > 0) {
+            for (let i = 0; !flagAdd && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == idDest && cardArray[i].level == level) {
+                    cardArray.splice(atIndex, 0, card);
+                    flagAdd = true;
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && cardArray[i].children != undefined && !flagAdd) {
+                        addElement(cardArray[i].children, card, idDest, atIndex, level);
+                    }
+                }
+            }
+        }
+    }
+
+    const moveCard = useCallback((idSource: string, atIndex: number, idDest: string) => {
+        if( idDest != idSource) {
+            const { card } = findCard(idSource)
+            const { level } = findCard(idDest);
+            let tempArray = cards;
+            flagRemove = false;
+            removeElement(tempArray, idSource);
+            flagAdd = false;
+            addElement(tempArray, card, idDest, atIndex, level);
+            setCards([...tempArray]);
+        }
+        
+    }, [cards]);
+
+
+    let result = null;
+
+    function findCardById(cardArray, id) {
+        if (cardArray.length > 0) {
+            for (let i = 0; result == null && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == id) {
+                    result = {
+                        card: cardArray[i],
+                        index: i,
+                        level: cardArray[i].level,
+                    }
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && result == null) {
+                        findCardById(cardArray[i].children, id);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    const findCard = (id: string) => {
+        let tempArray = cards;
+        result = null;
+        result = findCardById(tempArray, id);
+        if (result != null && result != undefined) {
+            return {
+                card: result.card,
+                index: result.index,
+                level: result.level,
+            };
+        } else {
+            return {
+                card: null,
+                index: -1,
+                level: -1,
+            };
+        }
+
+    }
+
     const [, drop] = useDrop(() => ({ accept: 'card' }))
+
+
 
     return (<BasicLayout>
         <div>
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
             <>
                 <div ref={drop} >
-                    {cards.map((card) => (
+                    {cards.map((card) => ( card != null && 
                         <Card
-                            key={card.id}
-                            id={`${card.id}`}
+                            id={card.id}
                             text={card.text}
                             moveCard={moveCard}
                             name={card.name}
