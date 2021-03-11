@@ -186,7 +186,7 @@ export interface CardProps {
     text: string
     name: string
     props: Object
-    moveCard: (id: string, to: number, idDest: string) => void
+    moveCard: (id: string, idDest: string) => void
     findCard: (id: string) => { index: number }
     children: []
 }
@@ -198,34 +198,48 @@ interface Item {
 }
 
 export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children, findCard }) => {
-    const originalIndex = findCard(id).index
+    const originalIndex = findCard(id).index;
+    const [hasDropped, setHasDropped] = useState(false)
+    const [hasDroppedOnChild, setHasDroppedOnChild] = useState(false)
     const [{ isDragging }, drag] = useDrag(
         () => ({
             item: { type: 'card', id, originalIndex },
             collect: (monitor) => ({
-                isDragging: monitor.isDragging(),
+                isDragging: !!monitor.isDragging(),
             }),
-            end: (dropResult: unknown, monitor) => {
+            end: (item, monitor) => {
                 const { id: droppedId, originalIndex } = monitor.getItem()
                 const didDrop = monitor.didDrop()
                 if (!didDrop) {
-                    moveCard(droppedId, originalIndex, id);
+                    moveCard(droppedId, id);
                 }
             },
+            collect: (monitor) => ({
+                isDragging: monitor.isDragging(),
+            }),
         }),
         [id, originalIndex],
     )
 
-    const [, drop] = useDrop(() => ({
+    const [{ isOverCurrent, isOver, canDrop }, drop] = useDrop(() => ({
         accept: 'card',
-        canDrop: () => false,
-        hover({ id: draggedId }: Item) {
-            if (draggedId !== id) {
-                const { index: overIndex } = findCard(id)
-                moveCard(draggedId, overIndex, id);
+        canDrop: () => true,
+        // hover({ id: draggedId }: Item, monitor) {
+        //     if (draggedId !== id && monitor.isOver({shallow: true})) {
+        //         moveCard(draggedId, id);
+        //     }
+        // },
+        drop({ id: draggedId }: Item, monitor) {
+            if (draggedId !== id && monitor.isOver({shallow: true})) {
+                moveCard(draggedId, id);
             }
         },
-    }))
+        collect: (monitor) => ({
+            isOver: monitor.isOver({shallow: true}),
+            isOverCurrent: monitor.isOver({ shallow: true }),
+            canDrop: monitor.canDrop(),
+        }),
+    }),[moveCard])
 
     // function transform(node, index) {
     //     if (node.name != null && node.name != undefined) {
@@ -250,8 +264,9 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
     // }
     // return ReactHtmlParser(dataReturn, options);
     if (children != null && children.length > 0) {
+        const CustomTag  = `${name}`;
         return (
-            <div ref={(node) => drag(drop(node))} style={{ backgroundColor: 'red', padding: '10px', margin: '5px' }}>
+            <CustomTag ref={(node) => drag(drop(node))} style={{ backgroundColor: 'red', padding: '10px', margin: '5px' }}>
                 {text}
                 {children.map(item => item != null &&
                     <Card
@@ -264,12 +279,13 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
                         findCard={findCard}
                     />)}
 
-            </div>
+            </CustomTag>
         )
     } else {
-        return (<span ref={(node) => drag(drop(node))} style={{ backgroundColor: 'blue', color: 'white', padding: '10px', margin: '5px' }}>
+        const CustomTag  = `${name}`;
+        return (<CustomTag ref={(node) => drag(drop(node))} style={{ backgroundColor: 'blue', color: 'white', padding: '10px', margin: '5px' }}>
             {text}
-        </span>)
+        </CustomTag>)
     }
 
 }
@@ -417,34 +433,35 @@ export const HomePage: FC<{}> = observer(({ }) => {
 
     let flagAdd = false;
 
-    function addElement(cardArray, card, idDest, atIndex, level) {
+    function addElement(cardArray, card, idDest) {
         if (cardArray.length > 0) {
             for (let i = 0; !flagAdd && i < cardArray.length; i++) {
-                if (cardArray[i] != null && cardArray[i].id == idDest && cardArray[i].level == level) {
-                    cardArray.splice(atIndex, 0, card);
+                if (cardArray[i] != null && cardArray[i].id == idDest) {
+                    cardArray.splice(i, 0, card);
                     flagAdd = true;
                 } else {
                     if (cardArray[i] != null && cardArray[i].children != null && cardArray[i].children != undefined && !flagAdd) {
-                        addElement(cardArray[i].children, card, idDest, atIndex, level);
+                        addElement(cardArray[i].children, card, idDest);
                     }
                 }
             }
         }
     }
 
-    const moveCard = useCallback((idSource: string, atIndex: number, idDest: string) => {
-        if( idDest != idSource) {
+    const moveCard = (idSource: string, idDest: string) => {
+        if (idSource != idDest) {
             const { card } = findCard(idSource)
-            const { level } = findCard(idDest);
-            let tempArray = cards;
-            flagRemove = false;
-            removeElement(tempArray, idSource);
-            flagAdd = false;
-            addElement(tempArray, card, idDest, atIndex, level);
-            setCards([...tempArray]);
+            if(card != null) {
+                let tempArray = cards;
+                flagRemove = false;
+                removeElement(tempArray, idSource);
+                flagAdd = false;
+                addElement(tempArray, card, idDest);
+                setCards([...tempArray]);
+            }
         }
-        
-    }, [cards]);
+
+    }
 
 
     let result = null;
@@ -497,7 +514,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
             <>
                 <div ref={drop} >
-                    {cards.map((card) => ( card != null && 
+                    {cards.map((card) => (card != null &&
                         <Card
                             id={card.id}
                             text={card.text}
