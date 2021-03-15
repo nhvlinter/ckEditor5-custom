@@ -189,7 +189,9 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
                             }
                             if (sOverview.attributes.length > 0) {
                                 for (let i = 0; i < sOverview.attributes.length; i++) {
-                                    node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
+                                    if(!(sOverview.attributes[i].key == 'id' && sOverview.attributes[i].value == '')) {
+                                        node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
+                                    }
                                 }
                             }
                         }
@@ -210,7 +212,7 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
 
     const handledOnclickTreeItem = useCallback((e, node) => {
         e.preventDefault();
-        sCKEditor.findAllReactIdsOfNode(node);
+        sCKEditor.findAllReactIdsOfNodeTreeView(node);
     },[sCKEditor]);
 
     function transform(node, index) {
