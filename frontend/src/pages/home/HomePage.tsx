@@ -125,9 +125,9 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
     if (id == reactIdMove) {
         styleTag['outline'] = "2px solid blue";
     }
-    if (isOverCurrent || (isOver && id)) {
-        styleTag['backgroundColor'] = "darkgreen";
-    }
+    // if (isOverCurrent || (isOver && id)) {
+    //     styleTag['backgroundColor'] = "darkgreen";
+    // }
     const CustomTag = `${name}`;
     return (
         <CustomTag ref={(node) => drag(drop(node))}
