@@ -4,7 +4,7 @@ import { useStore } from '../../stores';
 import { TreeView, TreeItem } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { TreeViewData } from '../../models/TreeViewData';
+import { TagData } from '../../models/TagData';
 import { Typography, makeStyles, createStyles, Theme, Checkbox, Chip, Box, Dialog, Button, Grid, Link, Paper, TextField, Tabs, Tab } from "@material-ui/core";
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
@@ -189,7 +189,7 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
                             }
                             if (sOverview.attributes.length > 0) {
                                 for (let i = 0; i < sOverview.attributes.length; i++) {
-                                    if(!(sOverview.attributes[i].key == 'id' && sOverview.attributes[i].value == '')) {
+                                    if (!(sOverview.attributes[i].key == 'id' && sOverview.attributes[i].value == '')) {
                                         node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
                                     }
                                 }
@@ -208,58 +208,30 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     const handledLabelTreeViewClick = useCallback((e, reactId) => {
         e.preventDefault();
         sCKEditor.set_reactId(reactId);
-    },[sCKEditor]);
+    }, [sCKEditor]);
 
-    const handledOnclickTreeItem = useCallback((e, node) => {
+    const handledOnclickTreeView = useCallback((e, item) => {
         e.preventDefault();
-        sCKEditor.findAllReactIdsOfNodeTreeView(node);
-    },[sCKEditor]);
-
-    function transform(node, index) {
-        if (node.name != undefined && node.name != null) {
-            let reactIdNode = node.attribs.reactid;
-            return (
-                <TreeView
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}
-                    expanded={sCKEditor.reactIds}
-                >
-                    <TreeItem
-                        classes={{
-                            root: classes.root,
-                            expanded: classes.expanded,
-                            selected: classes.selected,
-                            group: classes.group,
-                            label: classes.label,
-                        }}
-                        nodeId={node.attribs.reactid}
-                        style={sCKEditor.reactId == reactIdNode ? { color: 'red' } : {}}
-                        label={<div className={classes.labelRoot} >
-                            {node.name}
-                            <Box ml={3} />
-                            <BorderColorIcon
-                                onClick={() => handleClickOpen(node)}
-                            />
-                        </div>}
-                        onLabelClick={(e) => handledLabelTreeViewClick(e,node.attribs.reactid)}
-                        onClick = {(e) => handledOnclickTreeItem(e, node)}
-                    >
-                        {node.children.length != 1 && processNodes(node.children, transform)}
-                    </TreeItem>
-                </TreeView>
-            );
-        }
-    }
-
-
-    const options = {
-        decodeEntities: true,
-        transform
-    };
+        sCKEditor.findAllReactIdsOfNode(item);
+    }, [sCKEditor]);
 
     return (
         <>
-            {ReactHtmlParser(sCKEditor.data, options)}
+            <TreeView
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}
+                expanded={sCKEditor.reactIds}
+            >
+                {sCKEditor.tagDatas.length > 0 && (sCKEditor.tagDatas.map(item => {
+                    return (<TreeViewItem sCKEditor={sCKEditor}
+                        item={item}
+                        handleClickOpen={handleClickOpen}
+                        handledLabelTreeViewClick={handledLabelTreeViewClick}
+                        handledOnclickTreeView={handledOnclickTreeView}
+                    />)
+                }))}
+            </TreeView>
+
             {nodeData != null && (
                 <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='lg'>
                     <DialogTitle id="customized-dialog-title" onClose={handleClose}>
@@ -310,6 +282,45 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
         </>
     )
 });
+
+export const TreeViewItem: FC<{ sCKEditor, item: TagData, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView }>
+    = observer(({ sCKEditor, item, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView }) => {
+        const classes = useTreeItemStyles();
+        return (
+            <TreeItem
+                classes={{
+                    root: classes.root,
+                    expanded: classes.expanded,
+                    selected: classes.selected,
+                    group: classes.group,
+                    label: classes.label,
+                }}
+                nodeId={item.id}
+                style={sCKEditor.reactId == item.id ? { color: 'red' } : {}}
+                label={<div className={classes.labelRoot} >
+                    {item.name}
+                    <Box ml={3} />
+                    <BorderColorIcon
+                        onClick={() => handleClickOpen(item)}
+                    />
+                </div>}
+                onLabelClick={(e) => handledLabelTreeViewClick(e, item.id)}
+                onClick={(e) => handledOnclickTreeView(e, item)}
+            >
+                {item.children != null && (
+                    item.children.map(tagData => {
+                        return (<TreeViewItem sCKEditor={sCKEditor}
+                            item={tagData}
+                            handleClickOpen={handleClickOpen}
+                            handledLabelTreeViewClick={handledLabelTreeViewClick}
+                            handledOnclickTreeView={handledOnclickTreeView}
+                        />)
+                    })
+                )}
+            </TreeItem>
+        )
+    });
+
 export const TabPanelAddClasses: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
     const classes = useTreeItemStyles();
     useEffect(() => {
@@ -386,6 +397,11 @@ export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = obse
         sOverview.updateAttribute(key);
     }, [sOverview])
 
+    const onChangeValue = useCallback((key, value) => {
+        sOverview.attribute.set_value(value);
+        sOverview.updateAttribute(key);
+    },[sOverview]);
+
     return (value == index && (
         <Grid container spacing={3}>
             <Paper variant="outlined" className={classes.paperContent}>
@@ -421,7 +437,7 @@ export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = obse
                                     disabled>
                                 </TextField>
                                 <TextField variant="outlined" value={x.value} style={{ width: "300px" }}
-                                    onChange={(e) => sOverview.attribute.set_value(e.target.value)}
+                                    onChange={(e) => onChangeValue(x.key, e.target.value)}
                                 >
                                 </TextField>
                                 <IconButton aria-label="done"
@@ -461,13 +477,13 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
     function showCodeHTML(nodeData) {
         if (nodeData.name != undefined && nodeData.name != null) {
             let attributes = "";
-            if (nodeData.attribs != undefined && nodeData.attribs != null) {
-                let attrTemps = Object.entries(nodeData.attribs);
+            if (nodeData.props != undefined && nodeData.props != null) {
+                let attrTemps = Object.entries(nodeData.props);
                 for (let i = 0; i < attrTemps.length; i++) {
-                    if(attrTemps[i][0] != 'reactid') {
+                    if (attrTemps[i][0] != 'reactid' && attrTemps[i][0] != 'data-reactroot') {
                         attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
                     }
-                    
+
                 }
             }
             if (attributes != "") {
@@ -475,16 +491,13 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
             } else {
                 codeHtml += "<" + nodeData.name + ">\n";
             }
+            codeHtml += nodeData.text;
             if (nodeData.children != undefined && nodeData.children != null && nodeData.children.length > 0) {
                 for (let i = 0; i < nodeData.children.length; i++) {
-                    if (nodeData.children[i].data != undefined && nodeData.children[i].data != null) {
-                        codeHtml += nodeData.children[i].data;
-                    }
-
                     showCodeHTML(nodeData.children[i]);
                 }
             }
-            codeHtml += "</" + nodeData.name + ">";
+            codeHtml += "</" + nodeData.name + ">\n";
         }
 
     }

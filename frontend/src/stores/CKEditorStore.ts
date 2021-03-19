@@ -145,16 +145,16 @@ export class CKEditorStore {
         }
     }
 
-    @action async findAllReactIdsOfNodeTreeView(node) {
-        if (node != null && node.name != undefined && node.name != null) {
-            if (node.attribs.reactid != undefined && node.attribs.reactid != null) {
-                this.reactIds.push(node.attribs.reactid);
-                if (node.parent != null) {
-                    await this.findAllReactIdsOfNode(node.parent);
-                }
-            }
-        }
-    }
+    // @action async findAllReactIdsOfNodeTreeView(node) {
+    //     if (node != null && node.name != undefined && node.name != null) {
+    //         if (node.attribs.reactid != undefined && node.attribs.reactid != null) {
+    //             this.reactIds.push(node.attribs.reactid);
+    //             if (node.parent != null) {
+    //                 await this.findAllReactIdsOfNode(node.parent);
+    //             }
+    //         }
+    //     }
+    // }
 
 
     @action async convertToTree(html) {
@@ -177,7 +177,7 @@ export class CKEditorStore {
         }
         if (html.props != null) {
             let checkReactId = html.props.reactid != null;
-            let checkChildren = html.props.children != null && html.props.children.length > 0;
+            let checkChildren = html.props.children != null && html.props.children.length >= 0;
             if (checkReactId) {
                 dataTemp.set_id(html.props.reactid);
             }
