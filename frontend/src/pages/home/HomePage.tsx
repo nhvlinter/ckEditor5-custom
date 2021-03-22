@@ -110,8 +110,8 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
     }), [moveCard])
 
     let attributes = {};
-
-    let styleTag = {};
+    const opacity = isDragging ? 0 : 1
+    let styleTag = {opacity};
     if (props.style != undefined && props.style != null) {
         const { style, ...attriTemp } = props;
         attributes = attriTemp;
@@ -129,6 +129,7 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
         styleTag['backgroundColor'] = "darkgreen";
     }
     const CustomTag = `${name}`;
+   
     return (
         <CustomTag ref={(node) => drag(drop(node))}
             {...attributes}
@@ -230,7 +231,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const handledOnclick = useCallback((e, item) => {
         if (item != null) {
             sCKEditor.set_reactId(item.id);
-            sCKEditor.findAllReactIdsOfNode(item);
+            sCKEditor.findAllReactIdsParentOfNode(item);
             e.stopPropagation();
         }
     }, [sCKEditor]);

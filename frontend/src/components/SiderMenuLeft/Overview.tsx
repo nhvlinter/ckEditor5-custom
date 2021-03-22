@@ -23,6 +23,7 @@ import { OverviewStore } from '../../models/OverviewStore';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import DoneIcon from '@material-ui/icons/Done';
 import { renderToString } from 'react-dom/server'
+import { useDrag, useDrop, DropTargetMonitor } from "react-dnd";
 
 const useTreeItemStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -157,6 +158,11 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     const [nodeData, setNodeData] = useState(null);
     const [expandedId, setExpandedId] = useState([]);
 
+    useEffect(() => {
+        sCKEditor.init();
+        setExpandedId(sCKEditor.reactIds);
+    });
+
     const handleClickOpen = (nodeData) => {
         sOverview.init();
         if (nodeData != null) {
@@ -173,8 +179,8 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     };
 
     const updatedAttr2Server = () => {
-        let reactIdNodeData = nodeData.attribs.reactid;
         if (nodeData != null) {
+            let reactIdNodeData = nodeData.id;
             let dataHtml = ReactHtmlParser(sCKEditor.data, {
                 transform(node) {
                     if (node.name != undefined && node.name != null) {
@@ -212,22 +218,119 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
 
     const handledOnclickTreeView = useCallback((e, item) => {
         e.preventDefault();
-        sCKEditor.findAllReactIdsOfNode(item);
-    }, [sCKEditor]);
+        sCKEditor.removeOrAddEleFromReactIds(item);
+        let temp: string[] = [];
+        sCKEditor.reactIds.map(x => temp.push(x));
+        setExpandedId(temp);
+    }, [expandedId]);
+
+    let flagRemove = false;
+
+    function removeElement(cardArray, id) {
+        if (cardArray.length > 0) {
+            for (let i = 0; !flagRemove && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == id) {
+                    cardArray.splice(i, 1);
+                    flagRemove = true;
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && cardArray[i].children != undefined && !flagRemove) {
+                        removeElement(cardArray[i].children, id);
+                    }
+                }
+            }
+        }
+    }
+
+    let flagAdd = false;
+
+    function addElement(cardArray, card, idDest) {
+        if (cardArray.length > 0) {
+            for (let i = 0; !flagAdd && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == idDest) {
+                    cardArray.splice(i, 0, card);
+                    flagAdd = true;
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && cardArray[i].children != undefined && !flagAdd) {
+                        addElement(cardArray[i].children, card, idDest);
+                    }
+                }
+            }
+        }
+    }
+
+    const moveCard = (idSource: string, idDest: string) => {
+        if (idSource != idDest) {
+            const { card } = findCard(idSource)
+            if (card != null) {
+                let tempArray = sCKEditor.tagDatas;
+                flagRemove = false;
+                removeElement(tempArray, idSource);
+                flagAdd = false;
+                addElement(tempArray, card, idDest);
+                sCKEditor.set_tagDatas(tempArray);
+            }
+        }
+
+    }
+
+
+    let result = null;
+
+    function findCardById(cardArray, id) {
+        if (cardArray.length > 0) {
+            for (let i = 0; result == null && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == id) {
+                    result = {
+                        card: cardArray[i],
+                        index: i,
+                        level: cardArray[i].level,
+                    }
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && result == null) {
+                        findCardById(cardArray[i].children, id);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    const findCard = (id: string) => {
+        let tempArray = sCKEditor.tagDatas;
+        result = null;
+        result = findCardById(tempArray, id);
+        if (result != null && result != undefined) {
+            return {
+                card: result.card,
+                index: result.index,
+                level: result.level,
+            };
+        } else {
+            return {
+                card: null,
+                index: -1,
+                level: -1,
+            };
+        }
+
+    }
 
     return (
         <>
             <TreeView
                 defaultCollapseIcon={<ExpandMoreIcon />}
                 defaultExpandIcon={<ChevronRightIcon />}
-                expanded={sCKEditor.reactIds}
+                expanded={expandedId}
             >
                 {sCKEditor.tagDatas.length > 0 && (sCKEditor.tagDatas.map(item => {
                     return (<TreeViewItem sCKEditor={sCKEditor}
-                        item={item}
+                        id={item.id}
+                        card={item}
                         handleClickOpen={handleClickOpen}
                         handledLabelTreeViewClick={handledLabelTreeViewClick}
                         handledOnclickTreeView={handledOnclickTreeView}
+                        findCard={findCard}
+                        moveCard={moveCard}
                     />)
                 }))}
             </TreeView>
@@ -283,11 +386,54 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     )
 });
 
-export const TreeViewItem: FC<{ sCKEditor, item: TagData, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView }>
-    = observer(({ sCKEditor, item, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView }) => {
+interface Item {
+    type: string
+    id: string
+    originalIndex: string
+}
+
+export const TreeViewItem: FC<{ sCKEditor, id, card: TagData, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView, findCard, moveCard }>
+    = observer(({ sCKEditor, id, card, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView, findCard, moveCard }) => {
         const classes = useTreeItemStyles();
+        const originalIndex = findCard(id).index;
+        const [{ isDragging }, drag] = useDrag(
+            () => ({
+                item: { type: 'card', id, originalIndex },
+                collect: (monitor) => ({
+                    isDragging: !!monitor.isDragging(),
+                }),
+                end: (item, monitor) => {
+                    const { id: droppedId, originalIndex } = monitor.getItem()
+                    const didDrop = monitor.didDrop()
+                    console.log("didDrop: " + droppedId);
+                    console.log("Id 1: " + id);
+                    if (!didDrop) {
+                        moveCard(droppedId, id);
+                    }
+                },
+            }),
+            [id, originalIndex, moveCard],
+        )
+
+        const [{ isOverCurrent, isOver }, drop] = useDrop(() => ({
+            accept: 'card',
+            canDrop: () => true,
+            drop({ id: draggedId }: Item, monitor) {
+                console.log("draggedId: " + draggedId)
+                console.log("id: " + id)
+                if (draggedId !== id && monitor.isOver({ shallow: true })) {
+                    moveCard(draggedId, id);
+                }
+            },
+            collect: (monitor) => ({
+                isOver: monitor.isOver({ shallow: true }),
+                isOverCurrent: monitor.isOver({ shallow: true }),
+            }),
+        }), [findCard, moveCard])
+
         return (
             <TreeItem
+                ref={(node) => drag(drop(node))}
                 classes={{
                     root: classes.root,
                     expanded: classes.expanded,
@@ -295,25 +441,29 @@ export const TreeViewItem: FC<{ sCKEditor, item: TagData, handleClickOpen, handl
                     group: classes.group,
                     label: classes.label,
                 }}
-                nodeId={item.id}
-                style={sCKEditor.reactId == item.id ? { color: 'red' } : {}}
-                label={<div className={classes.labelRoot} >
-                    {item.name}
+                key={card.id}
+                nodeId={card.id}
+                style={sCKEditor.reactId == card.id ? { color: 'red' } : {}}
+                label={<div className={classes.labelRoot} ref={(node) => drag(drop(node))}>
+                    {card.name}
                     <Box ml={3} />
                     <BorderColorIcon
-                        onClick={() => handleClickOpen(item)}
+                        onClick={() => handleClickOpen(card)}
                     />
                 </div>}
-                onLabelClick={(e) => handledLabelTreeViewClick(e, item.id)}
-                onClick={(e) => handledOnclickTreeView(e, item)}
+                onLabelClick={(e) => handledLabelTreeViewClick(e, card.id)}
+                onClick={(e) => handledOnclickTreeView(e, card)}
             >
-                {item.children != null && (
-                    item.children.map(tagData => {
+                {card.children != null && (
+                    card.children.map(tagData => {
                         return (<TreeViewItem sCKEditor={sCKEditor}
-                            item={tagData}
+                            id={card.id}
+                            card={tagData}
                             handleClickOpen={handleClickOpen}
                             handledLabelTreeViewClick={handledLabelTreeViewClick}
                             handledOnclickTreeView={handledOnclickTreeView}
+                            findCard={findCard}
+                            moveCard={moveCard}
                         />)
                     })
                 )}
@@ -400,7 +550,7 @@ export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = obse
     const onChangeValue = useCallback((key, value) => {
         sOverview.attribute.set_value(value);
         sOverview.updateAttribute(key);
-    },[sOverview]);
+    }, [sOverview]);
 
     return (value == index && (
         <Grid container spacing={3}>

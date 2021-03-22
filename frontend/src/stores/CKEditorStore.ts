@@ -13,7 +13,8 @@ export class CKEditorStore {
     @observable dataChanges: string = "";
     @observable ckeditor: CKEditor;
     @observable reactId = null;
-    @observable reactIds = [];
+    @observable reactIds: string[] = [];
+    @observable reactChildIds = [];
     @observable tagDatas: TagData[] = [];
     @observable isLoadData: boolean = true;
     constructor(private store: BaseStore) {
@@ -21,7 +22,8 @@ export class CKEditorStore {
         this.reactId = null;
         this.reactIds = [];
         this.tagDatas = [];
-        this.isLoadData = true
+        this.isLoadData = true;
+        this.reactChildIds = [];
     }
     @action set_data = (v: string) => {
         const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;
@@ -30,7 +32,7 @@ export class CKEditorStore {
     @action set_dataChanges = (v: string) => { this.dataChanges = v; }
     @action set_reactId = (v: any) => { this.reactId = v };
     @action set_isLoadData = (v: boolean) => { this.isLoadData = v };
-    @action set_tagDatas = (v: TagData[]) => {this.tagDatas = v.map(x => x);}
+    @action set_tagDatas = (v: TagData[]) => { this.tagDatas = v.map(x => x); }
     @action async init() {
         // this.set_data(`<div style="color:red" onclick="alert('hello DIV')" preset="div tag">This is DIV</div>
         // <div style="color:blue" preset="div tag">This is DIV 2</div>
@@ -134,12 +136,49 @@ export class CKEditorStore {
     }
 
 
-    @action async findAllReactIdsOfNode(item) {
-        if (item != null ) {
-            if (item.id != undefined && item.id != null) {
-                this.reactIds.push(item.id);
+    @action async findAllReactIdsParentOfNode(item) {
+        if (item != null) {
+            if (item.id != undefined && item.id != null && item.id != "") {
+                let index = this.reactIds.findIndex(x => item.id == x);
+                if (index < 0) {
+                    this.reactIds.push(item.id);
+                }
                 if (item.parent != null && item.parent.id != null) {
-                    await this.findAllReactIdsOfNode(item.parent);
+                    await this.findAllReactIdsParentOfNode(item.parent);
+                }
+            }
+        }
+    }
+
+    @action async removeOrAddEleFromReactIds(item) {
+        let index = this.reactIds.findIndex(x => item.id == x);
+        if (index != null && index >= 0) {
+            this.reactIds.splice(index, 1);
+            this.reactChildIds = [];
+            await this.findAllReactIdsChildrenOfNode(item);
+            for (let i = 0; i < this.reactChildIds.length; i++) {
+                let indexChild = this.reactIds.findIndex(x => x == this.reactChildIds[i]);
+                if (indexChild >= 0) {
+                    this.reactIds.splice(indexChild, 1);
+                }
+            }
+        } else {
+            this.findAllReactIdsParentOfNode(item);
+        }
+    }
+
+    @action async findAllReactIdsChildrenOfNode(item) {
+        if (item != null) {
+            if (item.id != undefined && item.id != null && item.id != "") {
+                if (item.children != null && item.children.length > 0) {
+                    for (let i = 0; i < item.children.length; i++) {
+                        let index = this.reactChildIds.findIndex(x => item.children[i].id == x);
+                        if (index < 0) {
+                            this.reactChildIds.push(item.children[i].id);
+                        }
+                        await this.findAllReactIdsChildrenOfNode(item.children[i]);
+                    }
+
                 }
             }
         }
