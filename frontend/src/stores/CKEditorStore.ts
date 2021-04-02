@@ -17,6 +17,7 @@ export class CKEditorStore {
     @observable reactChildIds = [];
     @observable tagDatas: TagData[] = [];
     @observable isLoadData: boolean = true;
+    @observable codeHtml: string = "";
     constructor(private store: BaseStore) {
         this.ckeditor = new CKEditor();
         this.reactId = null;
@@ -24,6 +25,7 @@ export class CKEditorStore {
         this.tagDatas = [];
         this.isLoadData = true;
         this.reactChildIds = [];
+        this.codeHtml = "";
     }
     @action set_data = (v: string) => {
         const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;
@@ -91,7 +93,7 @@ export class CKEditorStore {
         return err;
     }
 
-    @action async save() {
+    @action async saveEditMode() {
         this.ckeditor.set_id("editor");
         this.set_data(this.ckeditor.getContent);
         await CKEditor.save(this.ckeditor);
@@ -252,5 +254,61 @@ export class CKEditorStore {
         }
         return dataTemp;
     }
+
+    @action async saveDragDropMode() {
+        this.convertTagData();
+        this.ckeditor.set_id("editor");
+        this.ckeditor.set_content(this.codeHtml);
+        this.set_data(this.ckeditor.getContent);
+        await CKEditor.save(this.ckeditor);
+    }
+
+    @action async convertTagData() {
+        for(let i = 0; i < this.tagDatas.length; i++) {
+            this.convertTagDataToHTMLString(this.tagDatas[i]);
+        }
+    }
+
+    @action async convertTagDataToHTMLString(nodeData) {
+        if (nodeData.name != undefined && nodeData.name != null) {
+            let attributes = "";
+            if (nodeData.props != undefined && nodeData.props != null) {
+                let attrTemps = Object.entries(nodeData.props);
+                for (let i = 0; i < attrTemps.length; i++) {
+                    if (attrTemps[i][0] != 'reactid' && attrTemps[i][0] != 'data-reactroot') {
+                        if(attrTemps[i][0].toLowerCase() == 'classname') {
+                            attributes += 'class ="' + attrTemps[i][1] + '" ';
+                        } else if (attrTemps[i][0] == 'style') {
+                            let dataStyle = "";
+                            let styleDataArray = Object.entries(attrTemps[i][1]);
+                            for(let i = 0; i < styleDataArray.length; i++) {
+                                let modified = styleDataArray[i][0].replaceAll(/[A-Z]/g, function(match) {
+                                    return "-" + match.toLowerCase();
+                                });
+                                dataStyle += modified + ":" + styleDataArray[i][1];
+                            }
+                            attributes += 'style="' + dataStyle + '" ';
+                        } else {
+                            attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                        }
+                        
+                    }
+                }
+            }
+            if (attributes != "") {
+                this.codeHtml += "<" + nodeData.name + " " + attributes.trim() + ">\n";
+            } else {
+                this.codeHtml += "<" + nodeData.name + ">\n";
+            }
+            this.codeHtml += nodeData.text;
+            if (nodeData.children != undefined && nodeData.children != null && nodeData.children.length > 0) {
+                for (let i = 0; i < nodeData.children.length; i++) {
+                    this.convertTagDataToHTMLString(nodeData.children[i]);
+                }
+            }
+            this.codeHtml += "</" + nodeData.name + ">\n";
+        }
+    }
+
 
 }

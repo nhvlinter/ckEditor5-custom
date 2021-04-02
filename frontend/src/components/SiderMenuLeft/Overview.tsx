@@ -405,8 +405,6 @@ export const TreeViewItem: FC<{ sCKEditor, id, card: TagData, handleClickOpen, h
                 end: (item, monitor) => {
                     const { id: droppedId, originalIndex } = monitor.getItem()
                     const didDrop = monitor.didDrop()
-                    console.log("didDrop: " + droppedId);
-                    console.log("Id 1: " + id);
                     if (!didDrop) {
                         moveCard(droppedId, id);
                     }
@@ -419,8 +417,6 @@ export const TreeViewItem: FC<{ sCKEditor, id, card: TagData, handleClickOpen, h
             accept: 'card',
             canDrop: () => true,
             drop({ id: draggedId }: Item, monitor) {
-                console.log("draggedId: " + draggedId)
-                console.log("id: " + id)
                 if (draggedId !== id && monitor.isOver({ shallow: true })) {
                     moveCard(draggedId, id);
                 }
@@ -457,7 +453,7 @@ export const TreeViewItem: FC<{ sCKEditor, id, card: TagData, handleClickOpen, h
                 {card.children != null && (
                     card.children.map(tagData => {
                         return (<TreeViewItem sCKEditor={sCKEditor}
-                            id={card.id}
+                            id={tagData.id}
                             card={tagData}
                             handleClickOpen={handleClickOpen}
                             handledLabelTreeViewClick={handledLabelTreeViewClick}
@@ -631,7 +627,21 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
                 let attrTemps = Object.entries(nodeData.props);
                 for (let i = 0; i < attrTemps.length; i++) {
                     if (attrTemps[i][0] != 'reactid' && attrTemps[i][0] != 'data-reactroot') {
-                        attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                        if(attrTemps[i][0].toLowerCase() == 'classname') {
+                            attributes += 'class ="' + attrTemps[i][1] + '" ';
+                        } else if (attrTemps[i][0] == 'style') {
+                            let dataStyle = "";
+                            let styleDataArray = Object.entries(attrTemps[i][1]);
+                            for(let i = 0; i < styleDataArray.length; i++) {
+                                let modified = styleDataArray[i][0].replaceAll(/[A-Z]/g, function(match) {
+                                    return "-" + match.toLowerCase();
+                                });
+                                dataStyle += modified + ":" + styleDataArray[i][1];
+                            }
+                            attributes += 'style="' + dataStyle + '" ';
+                        } else {
+                            attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                        }
                     }
 
                 }

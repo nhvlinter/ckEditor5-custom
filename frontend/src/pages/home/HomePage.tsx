@@ -111,7 +111,7 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
 
     let attributes = {};
     const opacity = isDragging ? 0 : 1
-    let styleTag = {opacity};
+    let styleTag = { opacity };
     if (props.style != undefined && props.style != null) {
         const { style, ...attriTemp } = props;
         attributes = attriTemp;
@@ -129,7 +129,7 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
         styleTag['backgroundColor'] = "darkgreen";
     }
     const CustomTag = `${name}`;
-   
+
     return (
         <CustomTag ref={(node) => drag(drop(node))}
             {...attributes}
@@ -199,8 +199,10 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const handledAction = useCallback(() => {
         if (action != "" && action == "reset") {
             reset();
-        } else if (action != "" && action == "save") {
-            save();
+        } else if (action != "" && action == "save" && editMode) {
+            saveEditMode();
+        } else if (action != "" && action == "save" && !editMode) {
+            saveDragDropMode();
         } else {
             // enqueueSnackbar("Error. Can not update the CKEditor!", {
             //     variant: 'error'
@@ -217,8 +219,15 @@ export const HomePage: FC<{}> = observer(({ }) => {
         })
     }, [sCKEditor]);
 
-    const save = useCallback(() => {
-        sCKEditor.save().then(result => {
+    const saveEditMode = useCallback(() => {
+        sCKEditor.saveEditMode().then(result => {
+            sCKEditor.init();
+            setOpenDialogAction(false);
+        })
+    }, [sCKEditor]);
+
+    const saveDragDropMode = useCallback(() => {
+        sCKEditor.saveDragDropMode().then(result => {
             sCKEditor.init();
             setOpenDialogAction(false);
         })
@@ -341,6 +350,41 @@ export const HomePage: FC<{}> = observer(({ }) => {
         }
 
     }
+
+    function transform(node, index) {
+        if (node.name != undefined && node.name != null) {
+            let reactIdNode = node.attribs.reactid;
+            let styleTag = {};
+            if (node.attribs.style != undefined) {
+                let style = node.attribs.style;
+                let arrayTemp = style.split(",");
+                for (let i = 0; i < arrayTemp.length; i++) {
+                    let temp = arrayTemp[i].split(":");
+                    if (temp.length == 2) {
+                        let key = temp[0].trim();
+                        let value = temp[1].trim();
+                        styleTag[key] = value.replaceAll("'", "");
+                    }
+                }
+            }
+            if (reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
+                styleTag['outline'] = "2px solid blue";
+            }
+            return <node.name
+                {...node.attribs}
+                style={styleTag}
+                draggable="true"
+                onClick={(e) => handledOnclick(e, node)}
+                onMouseEnter={(e) => handleOnMouseEnter(e, node)}
+                onMouseLeave={(e) => handleOnMouseLeave(e, node)}
+            >{processNodes(node.children, transform)}</node.name>
+        }
+    }
+
+    const options = {
+        decodeEntities: true,
+        transform
+    };
 
     return (<BasicLayout>
         <div>
