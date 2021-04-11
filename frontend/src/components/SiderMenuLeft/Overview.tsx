@@ -4,7 +4,7 @@ import { useStore } from '../../stores';
 import { TreeView, TreeItem } from '@material-ui/lab';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { TreeViewData } from '../../models/TreeViewData';
+import { TagData } from '../../models/TagData';
 import { Typography, makeStyles, createStyles, Theme, Checkbox, Chip, Box, Dialog, Button, Grid, Link, Paper, TextField, Tabs, Tab } from "@material-ui/core";
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
@@ -23,6 +23,7 @@ import { OverviewStore } from '../../models/OverviewStore';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import DoneIcon from '@material-ui/icons/Done';
 import { renderToString } from 'react-dom/server'
+import { useDrag, useDrop, DropTargetMonitor } from "react-dnd";
 
 const useTreeItemStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -157,6 +158,11 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     const [nodeData, setNodeData] = useState(null);
     const [expandedId, setExpandedId] = useState([]);
 
+    useEffect(() => {
+        sCKEditor.init();
+        setExpandedId(sCKEditor.reactIds);
+    });
+
     const handleClickOpen = (nodeData) => {
         sOverview.init();
         if (nodeData != null) {
@@ -173,8 +179,8 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     };
 
     const updatedAttr2Server = () => {
-        let reactIdNodeData = nodeData.attribs.reactid;
         if (nodeData != null) {
+            let reactIdNodeData = nodeData.id;
             let dataHtml = ReactHtmlParser(sCKEditor.data, {
                 transform(node) {
                     if (node.name != undefined && node.name != null) {
@@ -189,7 +195,9 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
                             }
                             if (sOverview.attributes.length > 0) {
                                 for (let i = 0; i < sOverview.attributes.length; i++) {
-                                    node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
+                                    if (!(sOverview.attributes[i].key == 'id' && sOverview.attributes[i].value == '')) {
+                                        node.attribs[sOverview.attributes[i].key] = sOverview.attributes[i].value;
+                                    }
                                 }
                             }
                         }
@@ -206,58 +214,127 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
     const handledLabelTreeViewClick = useCallback((e, reactId) => {
         e.preventDefault();
         sCKEditor.set_reactId(reactId);
-    },[sCKEditor]);
+    }, [sCKEditor]);
 
-    const handledOnclickTreeItem = useCallback((e, node) => {
+    const handledOnclickTreeView = useCallback((e, item) => {
         e.preventDefault();
-        sCKEditor.findAllReactIdsOfNode(node);
-    },[sCKEditor]);
+        sCKEditor.removeOrAddEleFromReactIds(item);
+        let temp: string[] = [];
+        sCKEditor.reactIds.map(x => temp.push(x));
+        setExpandedId(temp);
+    }, [expandedId]);
 
-    function transform(node, index) {
-        if (node.name != undefined && node.name != null) {
-            let reactIdNode = node.attribs.reactid;
-            return (
-                <TreeView
-                    defaultCollapseIcon={<ExpandMoreIcon />}
-                    defaultExpandIcon={<ChevronRightIcon />}
-                    expanded={sCKEditor.reactIds}
-                >
-                    <TreeItem
-                        classes={{
-                            root: classes.root,
-                            expanded: classes.expanded,
-                            selected: classes.selected,
-                            group: classes.group,
-                            label: classes.label,
-                        }}
-                        nodeId={node.attribs.reactid}
-                        style={sCKEditor.reactId == reactIdNode ? { color: 'red' } : {}}
-                        label={<div className={classes.labelRoot} >
-                            {node.name}
-                            <Box ml={3} />
-                            <BorderColorIcon
-                                onClick={() => handleClickOpen(node)}
-                            />
-                        </div>}
-                        onLabelClick={(e) => handledLabelTreeViewClick(e,node.attribs.reactid)}
-                        onClick = {(e) => handledOnclickTreeItem(e, node)}
-                    >
-                        {node.children.length != 1 && processNodes(node.children, transform)}
-                    </TreeItem>
-                </TreeView>
-            );
+    let flagRemove = false;
+
+    function removeElement(cardArray, id) {
+        if (cardArray.length > 0) {
+            for (let i = 0; !flagRemove && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == id) {
+                    cardArray.splice(i, 1);
+                    flagRemove = true;
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && cardArray[i].children != undefined && !flagRemove) {
+                        removeElement(cardArray[i].children, id);
+                    }
+                }
+            }
         }
     }
 
+    let flagAdd = false;
 
-    const options = {
-        decodeEntities: true,
-        transform
-    };
+    function addElement(cardArray, card, idDest) {
+        if (cardArray.length > 0) {
+            for (let i = 0; !flagAdd && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == idDest) {
+                    cardArray.splice(i, 0, card);
+                    flagAdd = true;
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && cardArray[i].children != undefined && !flagAdd) {
+                        addElement(cardArray[i].children, card, idDest);
+                    }
+                }
+            }
+        }
+    }
+
+    const moveCard = (idSource: string, idDest: string) => {
+        if (idSource != idDest) {
+            const { card } = findCard(idSource)
+            if (card != null) {
+                let tempArray = sCKEditor.tagDatas;
+                flagRemove = false;
+                removeElement(tempArray, idSource);
+                flagAdd = false;
+                addElement(tempArray, card, idDest);
+                sCKEditor.set_tagDatas(tempArray);
+            }
+        }
+
+    }
+
+
+    let result = null;
+
+    function findCardById(cardArray, id) {
+        if (cardArray.length > 0) {
+            for (let i = 0; result == null && i < cardArray.length; i++) {
+                if (cardArray[i] != null && cardArray[i].id == id) {
+                    result = {
+                        card: cardArray[i],
+                        index: i,
+                        level: cardArray[i].level,
+                    }
+                } else {
+                    if (cardArray[i] != null && cardArray[i].children != null && result == null) {
+                        findCardById(cardArray[i].children, id);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    const findCard = (id: string) => {
+        let tempArray = sCKEditor.tagDatas;
+        result = null;
+        result = findCardById(tempArray, id);
+        if (result != null && result != undefined) {
+            return {
+                card: result.card,
+                index: result.index,
+                level: result.level,
+            };
+        } else {
+            return {
+                card: null,
+                index: -1,
+                level: -1,
+            };
+        }
+
+    }
 
     return (
         <>
-            {ReactHtmlParser(sCKEditor.data, options)}
+            <TreeView
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}
+                expanded={expandedId}
+            >
+                {sCKEditor.tagDatas.length > 0 && (sCKEditor.tagDatas.map(item => {
+                    return (<TreeViewItem sCKEditor={sCKEditor}
+                        id={item.id}
+                        card={item}
+                        handleClickOpen={handleClickOpen}
+                        handledLabelTreeViewClick={handledLabelTreeViewClick}
+                        handledOnclickTreeView={handledOnclickTreeView}
+                        findCard={findCard}
+                        moveCard={moveCard}
+                    />)
+                }))}
+            </TreeView>
+
             {nodeData != null && (
                 <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open} maxWidth='lg'>
                     <DialogTitle id="customized-dialog-title" onClose={handleClose}>
@@ -308,6 +385,88 @@ export const Overview: FC<{ item: any }> = observer(({ item }) => {
         </>
     )
 });
+
+interface Item {
+    type: string
+    id: string
+    originalIndex: string
+}
+
+export const TreeViewItem: FC<{ sCKEditor, id, card: TagData, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView, findCard, moveCard }>
+    = observer(({ sCKEditor, id, card, handleClickOpen, handledLabelTreeViewClick, handledOnclickTreeView, findCard, moveCard }) => {
+        const classes = useTreeItemStyles();
+        const originalIndex = findCard(id).index;
+        const [{ isDragging }, drag] = useDrag(
+            () => ({
+                item: { type: 'card', id, originalIndex },
+                collect: (monitor) => ({
+                    isDragging: !!monitor.isDragging(),
+                }),
+                end: (item, monitor) => {
+                    const { id: droppedId, originalIndex } = monitor.getItem()
+                    const didDrop = monitor.didDrop()
+                    if (!didDrop) {
+                        moveCard(droppedId, id);
+                    }
+                },
+            }),
+            [id, originalIndex, moveCard],
+        )
+
+        const [{ isOverCurrent, isOver }, drop] = useDrop(() => ({
+            accept: 'card',
+            canDrop: () => true,
+            drop({ id: draggedId }: Item, monitor) {
+                if (draggedId !== id && monitor.isOver({ shallow: true })) {
+                    moveCard(draggedId, id);
+                }
+            },
+            collect: (monitor) => ({
+                isOver: monitor.isOver({ shallow: true }),
+                isOverCurrent: monitor.isOver({ shallow: true }),
+            }),
+        }), [findCard, moveCard])
+
+        return (
+            <TreeItem
+                ref={(node) => drag(drop(node))}
+                classes={{
+                    root: classes.root,
+                    expanded: classes.expanded,
+                    selected: classes.selected,
+                    group: classes.group,
+                    label: classes.label,
+                }}
+                key={card.id}
+                nodeId={card.id}
+                style={sCKEditor.reactId == card.id ? { color: 'red' } : {}}
+                label={<div className={classes.labelRoot} ref={(node) => drag(drop(node))}>
+                    {card.name}
+                    <Box ml={3} />
+                    <BorderColorIcon
+                        onClick={() => handleClickOpen(card)}
+                    />
+                </div>}
+                onLabelClick={(e) => handledLabelTreeViewClick(e, card.id)}
+                onClick={(e) => handledOnclickTreeView(e, card)}
+            >
+                {card.children != null && (
+                    card.children.map(tagData => {
+                        return (<TreeViewItem sCKEditor={sCKEditor}
+                            id={tagData.id}
+                            card={tagData}
+                            handleClickOpen={handleClickOpen}
+                            handledLabelTreeViewClick={handledLabelTreeViewClick}
+                            handledOnclickTreeView={handledOnclickTreeView}
+                            findCard={findCard}
+                            moveCard={moveCard}
+                        />)
+                    })
+                )}
+            </TreeItem>
+        )
+    });
+
 export const TabPanelAddClasses: FC<{ sOverview, node, value, index }> = observer(({ sOverview, node, value, index }) => {
     const classes = useTreeItemStyles();
     useEffect(() => {
@@ -384,6 +543,11 @@ export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = obse
         sOverview.updateAttribute(key);
     }, [sOverview])
 
+    const onChangeValue = useCallback((key, value) => {
+        sOverview.attribute.set_value(value);
+        sOverview.updateAttribute(key);
+    }, [sOverview]);
+
     return (value == index && (
         <Grid container spacing={3}>
             <Paper variant="outlined" className={classes.paperContent}>
@@ -419,7 +583,7 @@ export const TabPanelAddAttributes: FC<{ sOverview, node, value, index }> = obse
                                     disabled>
                                 </TextField>
                                 <TextField variant="outlined" value={x.value} style={{ width: "300px" }}
-                                    onChange={(e) => sOverview.attribute.set_value(e.target.value)}
+                                    onChange={(e) => onChangeValue(x.key, e.target.value)}
                                 >
                                 </TextField>
                                 <IconButton aria-label="done"
@@ -459,13 +623,27 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
     function showCodeHTML(nodeData) {
         if (nodeData.name != undefined && nodeData.name != null) {
             let attributes = "";
-            if (nodeData.attribs != undefined && nodeData.attribs != null) {
-                let attrTemps = Object.entries(nodeData.attribs);
+            if (nodeData.props != undefined && nodeData.props != null) {
+                let attrTemps = Object.entries(nodeData.props);
                 for (let i = 0; i < attrTemps.length; i++) {
-                    if(attrTemps[i][0] != 'reactid') {
-                        attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                    if (attrTemps[i][0] != 'reactid' && attrTemps[i][0] != 'data-reactroot') {
+                        if(attrTemps[i][0].toLowerCase() == 'classname') {
+                            attributes += 'class ="' + attrTemps[i][1] + '" ';
+                        } else if (attrTemps[i][0] == 'style') {
+                            let dataStyle = "";
+                            let styleDataArray = Object.entries(attrTemps[i][1]);
+                            for(let i = 0; i < styleDataArray.length; i++) {
+                                let modified = styleDataArray[i][0].replaceAll(/[A-Z]/g, function(match) {
+                                    return "-" + match.toLowerCase();
+                                });
+                                dataStyle += modified + ":" + styleDataArray[i][1];
+                            }
+                            attributes += 'style="' + dataStyle + '" ';
+                        } else {
+                            attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                        }
                     }
-                    
+
                 }
             }
             if (attributes != "") {
@@ -473,16 +651,13 @@ export const TabPanelHTMLCode: FC<{ sOverview, node, value, index }> = observer(
             } else {
                 codeHtml += "<" + nodeData.name + ">\n";
             }
+            codeHtml += nodeData.text;
             if (nodeData.children != undefined && nodeData.children != null && nodeData.children.length > 0) {
                 for (let i = 0; i < nodeData.children.length; i++) {
-                    if (nodeData.children[i].data != undefined && nodeData.children[i].data != null) {
-                        codeHtml += nodeData.children[i].data;
-                    }
-
                     showCodeHTML(nodeData.children[i]);
                 }
             }
-            codeHtml += "</" + nodeData.name + ">";
+            codeHtml += "</" + nodeData.name + ">\n";
         }
 
     }

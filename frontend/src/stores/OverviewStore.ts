@@ -44,8 +44,8 @@ export class OverviewStore {
     }
 
     @action async getClassesFromNode(node) {
-        if (node != null && node.attribs != null && node.attribs.class != null) {
-            let arrayTemp = node.attribs.class.trim().split(" ");
+        if (node != null && node.props != null && node.props.className != null) {
+            let arrayTemp = node.props.className.trim().split(" ");
             this.classes = arrayTemp;
         }
     }
@@ -86,20 +86,41 @@ export class OverviewStore {
     }
 
     @action updateAttrFromData(node) {
-        let attrs = node.attribs;
+        let attrs = node.props;
         let attrTemp = Object.entries(attrs);
         for (let i = 0; i < attrTemp.length; i++) {
             let key = attrTemp[i][0];
-            if (key != 'class' && key != 'reactid') {
-                let index = this.attributes.findIndex(x => x.get_key() == key);
-                if (index >= 0) {
-                    this.attributes[index].set_value(attrTemp[i][1]);
+            if (key != 'className' && key != 'reactid' && key != 'data-reactroot' && key != 'children') {
+                if (key == 'style') {
+                    let dataStyle = "";
+                    let styleDataArray = Object.entries(attrTemp[i][1]);
+                    for (let i = 0; i < styleDataArray.length; i++) {
+                        let modified = styleDataArray[i][0].replaceAll(/[A-Z]/g, function(match) {
+                            return "-" + match.toLowerCase();
+                        });
+                        dataStyle += modified + ":" + styleDataArray[i][1];
+                    }
+                    let index = this.attributes.findIndex(x => x.get_key() == key);
+                    if (index >= 0) {
+                        this.attributes[index].set_value(dataStyle);
+                    } else {
+                        let attr: AttributeHTML = new AttributeHTML();
+                        attr.set_key(key);
+                        attr.set_value(dataStyle);
+                        this.attributes.push(attr);
+                    }
                 } else {
-                    let attr: AttributeHTML = new AttributeHTML();
-                    attr.set_key(key);
-                    attr.set_value(attrTemp[i][1]);
-                    this.attributes.push(attr);
+                    let index = this.attributes.findIndex(x => x.get_key() == key);
+                    if (index >= 0) {
+                        this.attributes[index].set_value(attrTemp[i][1]);
+                    } else {
+                        let attr: AttributeHTML = new AttributeHTML();
+                        attr.set_key(key);
+                        attr.set_value(attrTemp[i][1]);
+                        this.attributes.push(attr);
+                    }
                 }
+
             }
         }
     }

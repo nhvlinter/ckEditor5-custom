@@ -51,135 +51,6 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const ITEMS = [
-    {
-        id: 1,
-        text: 'Write a cool JS library',
-        name: 'h1',
-        props: {
-            style: { backgroundColor: 'green' },
-        },
-        level: 1,
-        children: [
-            {
-                name: 'span',
-                text: 'Tag 1a',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                },
-                id: 5,
-                level: 2,
-            },
-            {
-                name: 'span',
-                text: 'Tag 1b',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                },
-                id: 15,
-                level: 2,
-            },
-        ],
-    },
-    {
-        id: 2,
-        text: 'Make it generic enough',
-        name: 'h2',
-        props: {
-            style: { backgroundColor: 'blue' },
-        },
-        level: 1,
-        children: [
-            {
-                name: 'span',
-                text: 'Tag 2a',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                },
-                id: 6,
-                level: 2,
-            },
-            {
-                name: 'span',
-                text: 'Tag 2b',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                },
-                id: 16,
-                level: 2,
-            },
-        ],
-    },
-    {
-        id: 3,
-        text: 'Write README',
-        name: 'h3',
-        props: {
-            style: { backgroundColor: 'red' },
-        },
-        level: 1,
-        children: [
-            {
-                name: 'span',
-                text: 'Tag 3a',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                },
-                id: 7,
-                level: 2,
-            },
-            {
-                name: 'span',
-                text: 'Tag 3b',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                },
-                id: 17,
-                level: 2,
-            },
-        ],
-    },
-    {
-        id: 4,
-        text: 'Create some examples',
-        name: 'h4',
-        props: {
-            style: { backgroundColor: 'yellow' },
-            class: "abcd xyz"
-        },
-        level: 1,
-        children: [
-            {
-                name: 'span',
-                text: 'Tag 4a',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                    id: 1
-                },
-                id: 8,
-                level: 2,
-            },
-            {
-                name: 'span',
-                text: 'Tag 4b',
-                type: 'main',
-                props: {
-                    style: { color: 'white', backgroundColor: 'black' },
-                    id: 1
-                },
-                id: 18,
-                level: 2,
-            },
-        ],
-    },
-]
 
 export interface CardProps {
     id: string
@@ -189,6 +60,11 @@ export interface CardProps {
     moveCard: (id: string, idDest: string) => void
     findCard: (id: string) => { index: number }
     children: []
+    handleOnMouseEnter: (e, id) => void
+    handleOnMouseLeave: (e, id) => void
+    reactIdMove: string
+    handledOnclick: (e, card) => void
+    item: any
 }
 
 interface Item {
@@ -197,10 +73,10 @@ interface Item {
     originalIndex: string
 }
 
-export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children, findCard }) => {
+export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
+    findCard, handleOnMouseEnter, handleOnMouseLeave, reactIdMove, handledOnclick, item }) => {
+
     const originalIndex = findCard(id).index;
-    const [hasDropped, setHasDropped] = useState(false)
-    const [hasDroppedOnChild, setHasDroppedOnChild] = useState(false)
     const [{ isDragging }, drag] = useDrag(
         () => ({
             item: { type: 'card', id, originalIndex },
@@ -214,79 +90,73 @@ export const Card: FC<CardProps> = ({ id, text, moveCard, name, props, children,
                     moveCard(droppedId, id);
                 }
             },
-            collect: (monitor) => ({
-                isDragging: monitor.isDragging(),
-            }),
         }),
         [id, originalIndex],
     )
 
-    const [{ isOverCurrent, isOver, canDrop }, drop] = useDrop(() => ({
+    const [{ isOverCurrent, isOver }, drop] = useDrop(() => ({
         accept: 'card',
         canDrop: () => true,
-        // hover({ id: draggedId }: Item, monitor) {
-        //     if (draggedId !== id && monitor.isOver({shallow: true})) {
-        //         moveCard(draggedId, id);
-        //     }
-        // },
         drop({ id: draggedId }: Item, monitor) {
-            if (draggedId !== id && monitor.isOver({shallow: true})) {
+            if (draggedId !== id && monitor.isOver({ shallow: true })) {
                 moveCard(draggedId, id);
             }
+
         },
         collect: (monitor) => ({
-            isOver: monitor.isOver({shallow: true}),
+            isOver: monitor.isOver({ shallow: true }),
             isOverCurrent: monitor.isOver({ shallow: true }),
-            canDrop: monitor.canDrop(),
         }),
-    }),[moveCard])
+    }), [moveCard])
 
-    // function transform(node, index) {
-    //     if (node.name != null && node.name != undefined) {
-    //         return <node.name
-    //             ref={(node) => drag(drop(node))}
-    //             {...JSON.parse(node.attribs.props)}
-    //         >{processNodes(node.children, transform)}</node.name>
-    //     }
-    // }
-
-    // const options = {
-    //     decodeEntities: true,
-    //     transform
-    // };
-    let dataReturn = "";
-    // if (children != undefined && children != null) {
-    //     dataReturn = "<" + name + " " + "props='" + JSON.stringify(props) + "'" + ">" +
-    //         "<" + children[0].name + " " + "props='" + JSON.stringify(children[0].props) + "'" + ">" +
-    //         children[0].text +
-    //         "</" + children[0].name + ">"
-    //         + "</" + name + ">";
-    // }
-    // return ReactHtmlParser(dataReturn, options);
-    if (children != null && children.length > 0) {
-        const CustomTag  = `${name}`;
-        return (
-            <CustomTag ref={(node) => drag(drop(node))} style={{ backgroundColor: 'red', padding: '10px', margin: '5px' }}>
-                {text}
-                {children.map(item => item != null &&
-                    <Card
-                        id={item.id}
-                        text={item.text}
-                        moveCard={moveCard}
-                        name={item.name}
-                        props={item.props}
-                        children={item.children}
-                        findCard={findCard}
-                    />)}
-
-            </CustomTag>
-        )
+    let attributes = {};
+    const opacity = isDragging ? 0 : 1
+    let styleTag = { opacity };
+    if (props.style != undefined && props.style != null) {
+        const { style, ...attriTemp } = props;
+        attributes = attriTemp;
+        let attrTemps = Object.entries(props.style);
+        for (let i = 0; i < attrTemps.length; i++) {
+            styleTag[attrTemps[i][0]] = attrTemps[i][1];
+        }
     } else {
-        const CustomTag  = `${name}`;
-        return (<CustomTag ref={(node) => drag(drop(node))} style={{ backgroundColor: 'blue', color: 'white', padding: '10px', margin: '5px' }}>
-            {text}
-        </CustomTag>)
+        attributes = props;
     }
+    if (id == reactIdMove) {
+        styleTag['outline'] = "2px solid blue";
+    }
+    if (isOverCurrent || (isOver && id)) {
+        styleTag['backgroundColor'] = "darkgreen";
+    }
+    const CustomTag = `${name}`;
+
+    return (
+        <CustomTag ref={(node) => drag(drop(node))}
+            {...attributes}
+            style={styleTag}
+            onMouseEnter={(e) => handleOnMouseEnter(e, id)}
+            onMouseLeave={(e) => handleOnMouseLeave(e, id)}
+            onClick={(e) => handledOnclick(e, item)}
+        >
+            {text}
+            {children.map(item => item != null &&
+                <Card
+                    id={item.id}
+                    text={item.text}
+                    moveCard={moveCard}
+                    name={item.name}
+                    props={item.props}
+                    children={item.children}
+                    findCard={findCard}
+                    handleOnMouseEnter={handleOnMouseEnter}
+                    handleOnMouseLeave={handleOnMouseLeave}
+                    reactIdMove={reactIdMove}
+                    handledOnclick={handledOnclick}
+                    item={item}
+                />)}
+
+        </CustomTag>
+    )
 
 }
 
@@ -297,13 +167,14 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const [openDialogAction, setOpenDialogAction] = React.useState(false);
     const [openDialog, setOpenDialog] = React.useState(false);
     const [editMode, setEditMode] = React.useState(false);
-    const [mouseMove, setMouseMove] = React.useState(false);
+    const [dragDropMode, setDragDropMode] = React.useState(true);
     const [reactIdMove, setReactIdMove] = React.useState(0);
+    const [cards, setCards] = useState(null);
     const listNode = [];
     const ref = useRef(null);
-    const [cards, setCards] = useState(ITEMS)
     useEffect(() => {
         sCKEditor.init();
+        setCards(sCKEditor.tagDatas);
     });
 
     const showDialogReset = useCallback(() => {
@@ -328,8 +199,10 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const handledAction = useCallback(() => {
         if (action != "" && action == "reset") {
             reset();
-        } else if (action != "" && action == "save") {
-            save();
+        } else if (action != "" && action == "save" && editMode) {
+            saveEditMode();
+        } else if (action != "" && action == "save" && !editMode) {
+            saveDragDropMode();
         } else {
             // enqueueSnackbar("Error. Can not update the CKEditor!", {
             //     variant: 'error'
@@ -346,8 +219,15 @@ export const HomePage: FC<{}> = observer(({ }) => {
         })
     }, [sCKEditor]);
 
-    const save = useCallback(() => {
-        sCKEditor.save().then(result => {
+    const saveEditMode = useCallback(() => {
+        sCKEditor.saveEditMode().then(result => {
+            sCKEditor.init();
+            setOpenDialogAction(false);
+        })
+    }, [sCKEditor]);
+
+    const saveDragDropMode = useCallback(() => {
+        sCKEditor.saveDragDropMode().then(result => {
             sCKEditor.init();
             setOpenDialogAction(false);
         })
@@ -357,62 +237,28 @@ export const HomePage: FC<{}> = observer(({ }) => {
         setEditMode(!editMode);
     }, [editMode])
 
-    const handledOnclick = useCallback((e, node) => {
-        if (node != null) {
-            sCKEditor.set_reactId(node.attribs.reactid);
-            sCKEditor.findAllReactIdsOfNode(node);
+    const handledOnclick = useCallback((e, item) => {
+        if (item != null) {
+            sCKEditor.set_reactId(item.id);
+            sCKEditor.findAllReactIdsParentOfNode(item);
             e.stopPropagation();
         }
     }, [sCKEditor]);
 
-    const handleOnMouseEnter = useCallback((e, node) => {
-        if (node != null) {
-            setReactIdMove(node.attribs.reactid);
+    const handleOnMouseEnter = useCallback((e, id) => {
+        if (id != null) {
+            setReactIdMove(id);
             e.stopPropagation();
         }
     }, [reactIdMove]);
 
-    const handleOnMouseLeave = useCallback((e, node) => {
-        if (node != null) {
+    const handleOnMouseLeave = useCallback((e, id) => {
+        if (id != null) {
             setReactIdMove(0);
             e.stopPropagation();
         }
     }, [reactIdMove]);
 
-    function transform(node, index) {
-        if (node.name != undefined && node.name != null) {
-            let reactIdNode = node.attribs.reactid;
-            let styleTag = {};
-            if (node.attribs.style != undefined) {
-                let style = node.attribs.style;
-                let arrayTemp = style.split(",");
-                for (let i = 0; i < arrayTemp.length; i++) {
-                    let temp = arrayTemp[i].split(":");
-                    if (temp.length == 2) {
-                        let key = temp[0].trim();
-                        let value = temp[1].trim();
-                        styleTag[key] = value.replaceAll("'", "");
-                    }
-                }
-            }
-            if (reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
-                styleTag['outline'] = "2px solid blue";
-            }
-            return <node.name
-                {...node.attribs}
-                style={styleTag}
-                draggable="true"
-                onClick={(e) => handledOnclick(e, node)}
-                onMouseEnter={(e) => handleOnMouseEnter(e, node)}
-                onMouseLeave={(e) => handleOnMouseLeave(e, node)}
-            >{processNodes(node.children, transform)}</node.name>
-        }
-    }
-
-    const options = {
-        decodeEntities: true,
-        transform
-    };
 
     let flagRemove = false;
 
@@ -451,13 +297,13 @@ export const HomePage: FC<{}> = observer(({ }) => {
     const moveCard = (idSource: string, idDest: string) => {
         if (idSource != idDest) {
             const { card } = findCard(idSource)
-            if(card != null) {
-                let tempArray = cards;
+            if (card != null) {
+                let tempArray = sCKEditor.tagDatas;
                 flagRemove = false;
                 removeElement(tempArray, idSource);
                 flagAdd = false;
                 addElement(tempArray, card, idDest);
-                setCards([...tempArray]);
+                sCKEditor.set_tagDatas(tempArray);
             }
         }
 
@@ -486,7 +332,7 @@ export const HomePage: FC<{}> = observer(({ }) => {
     }
 
     const findCard = (id: string) => {
-        let tempArray = cards;
+        let tempArray = sCKEditor.tagDatas;
         result = null;
         result = findCardById(tempArray, id);
         if (result != null && result != undefined) {
@@ -505,33 +351,46 @@ export const HomePage: FC<{}> = observer(({ }) => {
 
     }
 
-    const [, drop] = useDrop(() => ({ accept: 'card' }))
+    function transform(node, index) {
+        if (node.name != undefined && node.name != null) {
+            let reactIdNode = node.attribs.reactid;
+            let styleTag = {};
+            if (node.attribs.style != undefined) {
+                let style = node.attribs.style;
+                let arrayTemp = style.split(",");
+                for (let i = 0; i < arrayTemp.length; i++) {
+                    let temp = arrayTemp[i].split(":");
+                    if (temp.length == 2) {
+                        let key = temp[0].trim();
+                        let value = temp[1].trim();
+                        styleTag[key] = value.replaceAll("'", "");
+                    }
+                }
+            }
+            if (reactIdNode == reactIdMove || reactIdNode == sCKEditor.reactId) {
+                styleTag['outline'] = "2px solid blue";
+            }
+            return <node.name
+                {...node.attribs}
+                style={styleTag}
+                draggable="true"
+                onClick={(e) => handledOnclick(e, node)}
+                onMouseEnter={(e) => handleOnMouseEnter(e, node)}
+                onMouseLeave={(e) => handleOnMouseLeave(e, node)}
+            >{processNodes(node.children, transform)}</node.name>
+        }
+    }
 
-
+    const options = {
+        decodeEntities: true,
+        transform
+    };
 
     return (<BasicLayout>
         <div>
             <h2 style={{ marginBottom: 50 }}>Inline editor</h2>
-            <>
-                <div ref={drop} >
-                    {cards.map((card) => (card != null &&
-                        <Card
-                            id={card.id}
-                            text={card.text}
-                            moveCard={moveCard}
-                            name={card.name}
-                            props={card.props}
-                            children={card.children}
-                            findCard={findCard}
-                        />
-                    ))}
-                </div>
-            </>
             <div className={classes.btn}>
                 <Button variant="contained" onClick={showDialogReset}>Reset</Button>
-                {/* <Button variant="contained" color="primary" onClick={edit} >
-                    Edit
-                </Button> */}
                 <Button variant="contained" color="primary" onClick={showDialogSave}>
                     Save
                 </Button>
@@ -598,9 +457,24 @@ export const HomePage: FC<{}> = observer(({ }) => {
                     console.log('Focus.', editor);
                 }}
             />
-            : <div style={{ margin: '10px' }}>
-                {ReactHtmlParser(sCKEditor.data, options)}
-            </div>}
+            : <>
+                {sCKEditor.tagDatas.map((card) => (card != null &&
+                    <Card
+                        id={card.id}
+                        text={card.text}
+                        moveCard={moveCard}
+                        name={card.name}
+                        props={card.props}
+                        children={card.children}
+                        findCard={findCard}
+                        handleOnMouseEnter={handleOnMouseEnter}
+                        handleOnMouseLeave={handleOnMouseLeave}
+                        reactIdMove={reactIdMove}
+                        handledOnclick={handledOnclick}
+                        item={card}
+                    />
+                ))}
+            </>}
         <Dialog
             open={openDialogAction}
             onClose={handledCloseDialogAction}

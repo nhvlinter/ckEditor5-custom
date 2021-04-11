@@ -5,6 +5,7 @@ import { aFetch } from "../services/api/fetch";
 import { CKEditor } from "../models/CKEditor";
 import ReactHtmlParser, { processNodes, convertNodeToElement } from 'react-html-parser';
 import { transform } from "lodash-es";
+import { TagData, TagData } from "../models/TagData";
 import { renderToString } from 'react-dom/server'
 
 export class CKEditorStore {
@@ -12,13 +13,19 @@ export class CKEditorStore {
     @observable dataChanges: string = "";
     @observable ckeditor: CKEditor;
     @observable reactId = null;
-    @observable treeViewDataStore: TreeViewDataStore = new TreeViewDataStore();
-    @observable reactIds = [];
+    @observable reactIds: string[] = [];
+    @observable reactChildIds = [];
+    @observable tagDatas: TagData[] = [];
+    @observable isLoadData: boolean = true;
+    @observable codeHtml: string = "";
     constructor(private store: BaseStore) {
         this.ckeditor = new CKEditor();
-        this.treeViewDataStore = new TreeViewDataStore();
         this.reactId = null;
         this.reactIds = [];
+        this.tagDatas = [];
+        this.isLoadData = true;
+        this.reactChildIds = [];
+        this.codeHtml = "";
     }
     @action set_data = (v: string) => {
         const emptyParagraphRegexp = /(^|<body\b[^>]*>)\s*<(p|div|address|h\d|center|pre)[^>]*>\s*(?:<br[^>]*>|&nbsp;|\u00A0|&#160;)?\s*(:?<\/\2>)?\s*(?=$|<\/body>)/gi;
@@ -26,6 +33,8 @@ export class CKEditorStore {
     }
     @action set_dataChanges = (v: string) => { this.dataChanges = v; }
     @action set_reactId = (v: any) => { this.reactId = v };
+    @action set_isLoadData = (v: boolean) => { this.isLoadData = v };
+    @action set_tagDatas = (v: TagData[]) => { this.tagDatas = v.map(x => x); }
     @action async init() {
         // this.set_data(`<div style="color:red" onclick="alert('hello DIV')" preset="div tag">This is DIV</div>
         // <div style="color:blue" preset="div tag">This is DIV 2</div>
@@ -67,6 +76,12 @@ export class CKEditorStore {
             let dataHtml = await this.addReactIdToAllTag(dataGet);
             dataHtml = dataHtml.replaceAll(">", ">\n");
             this.set_data(dataHtml);
+            if (this.isLoadData) {
+                let dataHtml2 = ReactHtmlParser(this.data);
+                let dataConvertTree = await this.convertToTree(dataHtml2);
+                this.set_tagDatas(dataConvertTree);
+                this.set_isLoadData(false);
+            }
         }
     }
 
@@ -78,7 +93,7 @@ export class CKEditorStore {
         return err;
     }
 
-    @action async save() {
+    @action async saveEditMode() {
         this.ckeditor.set_id("editor");
         this.set_data(this.ckeditor.getContent);
         await CKEditor.save(this.ckeditor);
@@ -92,6 +107,7 @@ export class CKEditorStore {
         ckeditor.set_id("editor");
         ckeditor.set_content(dataHtml);
         await CKEditor.save(ckeditor);
+        this.set_isLoadData(true);
         this.init();
     }
 
@@ -121,15 +137,178 @@ export class CKEditorStore {
         return renderToString(dataHtml);
     }
 
-    @action async findAllReactIdsOfNode(node) {
-        if (node != null && node.name != undefined && node.name != null) {
-            if (node.attribs.reactid != undefined && node.attribs.reactid != null) {
-                this.reactIds.push(node.attribs.reactid);
-                if (node.parent != null) {
-                    await this.findAllReactIdsOfNode(node.parent);
+
+    @action async findAllReactIdsParentOfNode(item) {
+        if (item != null) {
+            if (item.id != undefined && item.id != null && item.id != "") {
+                let index = this.reactIds.findIndex(x => item.id == x);
+                if (index < 0) {
+                    this.reactIds.push(item.id);
+                }
+                if (item.parent != null && item.parent.id != null) {
+                    await this.findAllReactIdsParentOfNode(item.parent);
                 }
             }
         }
-
     }
+
+    @action async removeOrAddEleFromReactIds(item) {
+        let index = this.reactIds.findIndex(x => item.id == x);
+        if (index != null && index >= 0) {
+            this.reactIds.splice(index, 1);
+            this.reactChildIds = [];
+            await this.findAllReactIdsChildrenOfNode(item);
+            for (let i = 0; i < this.reactChildIds.length; i++) {
+                let indexChild = this.reactIds.findIndex(x => x == this.reactChildIds[i]);
+                if (indexChild >= 0) {
+                    this.reactIds.splice(indexChild, 1);
+                }
+            }
+        } else {
+            this.findAllReactIdsParentOfNode(item);
+        }
+    }
+
+    @action async findAllReactIdsChildrenOfNode(item) {
+        if (item != null) {
+            if (item.id != undefined && item.id != null && item.id != "") {
+                if (item.children != null && item.children.length > 0) {
+                    for (let i = 0; i < item.children.length; i++) {
+                        let index = this.reactChildIds.findIndex(x => item.children[i].id == x);
+                        if (index < 0) {
+                            this.reactChildIds.push(item.children[i].id);
+                        }
+                        await this.findAllReactIdsChildrenOfNode(item.children[i]);
+                    }
+
+                }
+            }
+        }
+    }
+
+    // @action async findAllReactIdsOfNodeTreeView(node) {
+    //     if (node != null && node.name != undefined && node.name != null) {
+    //         if (node.attribs.reactid != undefined && node.attribs.reactid != null) {
+    //             this.reactIds.push(node.attribs.reactid);
+    //             if (node.parent != null) {
+    //                 await this.findAllReactIdsOfNode(node.parent);
+    //             }
+    //         }
+    //     }
+    // }
+
+
+    @action async convertToTree(html) {
+        let result: TagData[] = [];
+        for (let i = 0; i < html.length; i++) {
+            if (html[i] != null) {
+                let dataTemp: TagData = new TagData();
+                dataTemp.set_parent(null);
+                dataTemp = await this.handledNode(html[i], dataTemp);
+                // this.tagDatas.push(dataTemp);
+                result.push(dataTemp);
+            }
+        }
+        return result;
+    }
+
+    @action async handledNode(html, dataTemp: TagData) {
+        if (html.type != null) {
+            dataTemp.set_name(html.type);
+        }
+        if (html.props != null) {
+            let checkReactId = html.props.reactid != null;
+            let checkChildren = html.props.children != null && html.props.children.length >= 0;
+            if (checkReactId) {
+                dataTemp.set_id(html.props.reactid);
+            }
+            if (checkChildren) {
+                if (html.props.children.length == 1 && html.props.children[0].type == undefined) {
+                    dataTemp.set_text(html.props.children);
+                } else {
+                    let tagChildren: TagData[] = [];
+                    for (let i = 0; i < html.props.children.length; i++) {
+                        let children: TagData = new TagData();
+                        children.set_parent(dataTemp);
+                        children = await this.handledNode(html.props.children[i], children);
+                        tagChildren.push(children);
+                    }
+                    if (tagChildren.length > 0) {
+                        dataTemp.set_children(tagChildren);
+                    }
+                }
+
+            }
+            if (checkReactId && checkChildren) {
+                const { reactid, children, ...objectTemp } = html.props
+                dataTemp.set_props(objectTemp);
+            } else if (checkReactId && !checkChildren) {
+                const { reactid, ...objectTemp } = html.props
+                dataTemp.set_props(objectTemp);
+            } else if (!checkReactId && checkChildren) {
+                const { children, ...objectTemp } = html.props
+                dataTemp.set_props(objectTemp);
+            } else {
+                dataTemp.set_props(html.props);
+            }
+        }
+        return dataTemp;
+    }
+
+    @action async saveDragDropMode() {
+        this.convertTagData();
+        this.ckeditor.set_id("editor");
+        this.ckeditor.set_content(this.codeHtml);
+        this.set_data(this.ckeditor.getContent);
+        await CKEditor.save(this.ckeditor);
+    }
+
+    @action async convertTagData() {
+        for(let i = 0; i < this.tagDatas.length; i++) {
+            this.convertTagDataToHTMLString(this.tagDatas[i]);
+        }
+    }
+
+    @action async convertTagDataToHTMLString(nodeData) {
+        if (nodeData.name != undefined && nodeData.name != null) {
+            let attributes = "";
+            if (nodeData.props != undefined && nodeData.props != null) {
+                let attrTemps = Object.entries(nodeData.props);
+                for (let i = 0; i < attrTemps.length; i++) {
+                    if (attrTemps[i][0] != 'reactid' && attrTemps[i][0] != 'data-reactroot') {
+                        if(attrTemps[i][0].toLowerCase() == 'classname') {
+                            attributes += 'class ="' + attrTemps[i][1] + '" ';
+                        } else if (attrTemps[i][0] == 'style') {
+                            let dataStyle = "";
+                            let styleDataArray = Object.entries(attrTemps[i][1]);
+                            for(let i = 0; i < styleDataArray.length; i++) {
+                                let modified = styleDataArray[i][0].replaceAll(/[A-Z]/g, function(match) {
+                                    return "-" + match.toLowerCase();
+                                });
+                                dataStyle += modified + ":" + styleDataArray[i][1];
+                            }
+                            attributes += 'style="' + dataStyle + '" ';
+                        } else {
+                            attributes += attrTemps[i][0] + '="' + attrTemps[i][1] + '" ';
+                        }
+                        
+                    }
+                }
+            }
+            if (attributes != "") {
+                this.codeHtml += "<" + nodeData.name + " " + attributes.trim() + ">\n";
+            } else {
+                this.codeHtml += "<" + nodeData.name + ">\n";
+            }
+            this.codeHtml += nodeData.text;
+            if (nodeData.children != undefined && nodeData.children != null && nodeData.children.length > 0) {
+                for (let i = 0; i < nodeData.children.length; i++) {
+                    this.convertTagDataToHTMLString(nodeData.children[i]);
+                }
+            }
+            this.codeHtml += "</" + nodeData.name + ">\n";
+        }
+    }
+
+
 }
