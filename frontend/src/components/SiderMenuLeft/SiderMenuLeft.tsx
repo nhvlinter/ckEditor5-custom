@@ -138,7 +138,7 @@ const useStyles = makeStyles((theme: Theme) =>
 				easing: theme.transitions.easing.sharp,
 				duration: theme.transitions.duration.enteringScreen,
 			}),
-			height: `calc(100% - ${drawerHeight}px)`,
+			// height: `calc(100% - ${drawerHeight}px)`,
 		},
 		drawerCloseOverview: {
 			transition: theme.transitions.create('width', {
@@ -182,7 +182,7 @@ export const SiderMenuLeft: FC<{ collapsed: boolean }> = observer(({ collapsed }
 	return (
 		<ThemeProvider >
 			<div>
-				<Drawer
+				{/* <Drawer
 					variant="permanent"
 					className={clsx(classes.drawer, {
 						[classes.drawerOpen]: open,
@@ -221,7 +221,7 @@ export const SiderMenuLeft: FC<{ collapsed: boolean }> = observer(({ collapsed }
 							<TreeItem nodeId="4" label="Footers" />
 						</TreeItem>
 					</TreeView>
-				</Drawer>
+				</Drawer> */}
 				<Drawer
 					variant="permanent"
 					className={clsx(classes.drawerOverview, {
@@ -235,7 +235,7 @@ export const SiderMenuLeft: FC<{ collapsed: boolean }> = observer(({ collapsed }
 						}),
 					}}
 					// open={false}
-					anchor="bottom"
+					// anchor="bottom"
 					transitionDuration={2000}>
 					<Divider />
 					<Tabs
